@@ -16,7 +16,8 @@
 pragma solidity >=0.6.12;
 
 import "dss-interfaces/Interfaces.sol";
-import "./MCDUser.sol";
+
+import {MCDUser} from "./MCDUser.sol";
 
 /// @dev An instance of MCD with all relevant references
 contract MCD {

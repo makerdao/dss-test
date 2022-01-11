@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "dss-interfaces/Interfaces.sol";
+import {WardsAbstract,DSTokenAbstract} from "dss-interfaces/Interfaces.sol";
 
 // NOTE this contains some extra Foundry-only calls
 // If using DappTools check if things are available

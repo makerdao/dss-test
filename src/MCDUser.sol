@@ -16,8 +16,9 @@
 pragma solidity >=0.6.12;
 
 import "dss-interfaces/Interfaces.sol";
-import "./GodMode.sol";
-import "./MCD.sol";
+
+import {GodMode} from "./GodMode.sol";
+import {MCD} from "./MCD.sol";
 
 /// @dev A user which can perform actions in MCD
 contract MCDUser {

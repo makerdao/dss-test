@@ -13,31 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity >=0.6.12;
+pragma solidity 0.6.12;
 
-import "ds-test/test.sol";
+import "../DSSTest.sol";
 
-import {GodMode} from "./GodMode.sol";
-import {MCD,MCDMainnet,MCDGoerli} from "./MCD.sol";
-import {MCDUser} from "./MCDUser.sol";
+contract MainnetTest is DSSTest {
 
-abstract contract DSSTest is DSTest {
-
-    uint256 constant WAD = 10 ** 18;
-    uint256 constant RAY = 10 ** 27;
-    uint256 constant RAD = 10 ** 45;
-    uint256 constant BPS = 10 ** 4;
-
-    uint256 constant THOUSAND = 10 ** 3;
-    uint256 constant MILLION = 10 ** 6;
-    uint256 constant BILLION = 10 ** 9;
-
-    MCD mcd;
-
-    function setUp() public virtual {
-        postSetup();
+    function postSetup() internal virtual override {
+        mcd = new MCDMainnet();
     }
 
-    function postSetup() internal virtual;
+    function test_sanity() public {
+        assertEq(address(mcd.vat()), 0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B);
+    }
 
 }
