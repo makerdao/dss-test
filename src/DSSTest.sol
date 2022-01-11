@@ -47,6 +47,51 @@ interface Vm {
     function expectCall(address,bytes calldata) external;
 }
 
+/// @dev A user which can perform actions in MCD
+contract MCDUser {
+
+    DSSBaseTest base;
+
+    VatAbstract vat;
+    DogAbstract dog;
+
+    constructor(
+        DSSBaseTest _base
+    ) public {
+        base = _base;
+
+        vat = base.vat();
+        dog = base.dog();
+    }
+
+    /// @dev Create an auction on the provided ilk
+    /// @param join The gem join adapter to use
+    /// @param amount The amount of gems to use as collateral
+    function createAuction(
+        GemJoinAbstract join,
+        uint256 amount
+    ) public {
+        DSTokenAbstract token = DSTokenAbstract(join.gem());
+        bytes32 ilk = join.ilk();
+
+        base.giveTokens(address(token), address(this), amount);
+        uint256 prevAllowance = token.allowance(address(this), address(join));
+        token.approve(address(join), amount);
+        join.join(address(this), amount);
+        token.approve(address(join), prevAllowance);
+        (,uint256 rate, uint256 spot,,) = vat.ilks(ilk);
+        uint256 art = spot * amount / rate;
+        uint256 ink = amount * (10 ** (18 - token.decimals()));
+        vat.frob(ilk, address(this), address(this), address(this), int256(ink), int256(art));
+
+        // Temporarily increase the liquidation threshold to liquidate this one vault then reset it
+        vat.file(ilk, "spot", spot + 1);
+        dog.bark(ilk, address(this), address(this));
+        vat.file(ilk, "spot", spot);
+    }
+
+}
+
 abstract contract DSSBaseTest is DSTest {
 
     Vm vm;
@@ -87,7 +132,7 @@ abstract contract DSSBaseTest is DSTest {
     function postSetup() internal virtual;
 
     /// @dev Gives `target` contract admin access on the `base`
-    function giveAuthAccess(address base, address target) internal {
+    function giveAuthAccess(address base, address target) public {
         // Edge case - ward is already set
         if (WardsAbstract(base).wards(target) == 1) return;
 
@@ -120,7 +165,7 @@ abstract contract DSSBaseTest is DSTest {
     }
 
     /// @dev Gives `who` `amount` number of tokens at address `token`.
-    function giveTokens(address token, address who, uint256 amount) internal {
+    function giveTokens(address token, address who, uint256 amount) public {
         // Edge case - balance is already set for some reason
         if (DSTokenAbstract(token).balanceOf(who) == amount) return;
 
@@ -150,6 +195,27 @@ abstract contract DSSBaseTest is DSTest {
 
         // We have failed if we reach here
         assertTrue(false);
+    }
+
+    // --- Common helper functions ---
+    function _min(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        z = x <= y ? x : y;
+    }
+    function _max(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        z = x >= y ? x : y;
+    }
+
+    // --- MCD-specific helper functions ---
+
+    function newUser() public returns (MCDUser) {
+        return new MCDUser(this);
+    }
+
+    /// @dev Deploy a fresh new ilk
+    function deployIlk(
+        GemJoinAbstract join
+    ) public {
+
     }
 
 }
