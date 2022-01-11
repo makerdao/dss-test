@@ -69,12 +69,10 @@ abstract contract DSSBaseTest is DSTest {
 
     function postSetup() internal virtual;
 
-    /// @dev 
-    function giveAuthAccess(address _base, address target) internal {
-        WardsAbstract base = WardsAbstract(_base);
-
+    /// @dev Gives `target` contract admin access on the `base`
+    function giveAuthAccess(address base, address target) internal {
         // Edge case - ward is already set
-        if (base.wards(target) == 1) return;
+        if (WardsAbstract(base).wards(target) == 1) return;
 
         for (int i = 0; i < 100; i++) {
             // Scan the storage for the ward storage slot
@@ -87,7 +85,7 @@ abstract contract DSSBaseTest is DSTest {
                 keccak256(abi.encode(target, uint256(i))),
                 bytes32(uint256(1))
             );
-            if (base.wards(target) == 1) {
+            if (WardsAbstract(base).wards(target) == 1) {
                 // Found it
                 return;
             } else {
@@ -104,29 +102,30 @@ abstract contract DSSBaseTest is DSTest {
         assertTrue(false);
     }
 
-    function giveTokens(address token, uint256 amount) internal {
+    /// @dev Gives `who` `amount` number of tokens at address `token`.
+    function giveTokens(address token, address who, uint256 amount) internal {
         // Edge case - balance is already set for some reason
-        if (DSTokenAbstract(token).balanceOf(address(this)) == amount) return;
+        if (DSTokenAbstract(token).balanceOf(who) == amount) return;
 
         for (uint256 i = 0; i < 200; i++) {
             // Scan the storage for the balance storage slot
             bytes32 prevValue = vm.load(
                 token,
-                keccak256(abi.encode(address(this), uint256(i)))
+                keccak256(abi.encode(who, uint256(i)))
             );
             vm.store(
                 token,
-                keccak256(abi.encode(address(this), uint256(i))),
+                keccak256(abi.encode(who, uint256(i))),
                 bytes32(amount)
             );
-            if (DSTokenAbstract(token).balanceOf(address(this)) == amount) {
+            if (DSTokenAbstract(token).balanceOf(who) == amount) {
                 // Found it
                 return;
             } else {
                 // Keep going after restoring the original value
                 vm.store(
                     token,
-                    keccak256(abi.encode(address(this), uint256(i))),
+                    keccak256(abi.encode(who, uint256(i))),
                     prevValue
                 );
             }
