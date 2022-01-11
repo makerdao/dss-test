@@ -44,4 +44,10 @@ contract MainnetTest is DSSTest {
         assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
     }
 
+    function test_create_liquidation() public {
+        uint256 prevKicks = mcd.wethAClip().kicks();
+        user1.createAuction(mcd.wethAJoin(), 100 ether);
+        assertEq(mcd.wethAClip().kicks(), prevKicks + 1);
+    }
+
 }

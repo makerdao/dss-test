@@ -16,7 +16,12 @@
 pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
-import {WardsAbstract,DSTokenAbstract,DaiAbstract} from "dss-interfaces/Interfaces.sol";
+import {
+    WardsAbstract,
+    DSTokenAbstract,
+    DaiAbstract,
+    VatAbstract
+} from "dss-interfaces/Interfaces.sol";
 
 // NOTE this contains some extra Foundry-only calls
 // If using DappTools check if things are available
@@ -69,10 +74,10 @@ library GodMode {
         return Vm(VM_ADDR);
     }
 
-    /// @dev Gives `target` contract admin access on the `base`
-    function giveAuthAccess(address base, address target) internal {
+    /// @dev Set the ward for `base` for the specified `target`
+    function setWard(address base, address target, uint256 val) internal {
         // Edge case - ward is already set
-        if (WardsAbstract(base).wards(target) == 1) return;
+        if (WardsAbstract(base).wards(target) == val) return;
 
         for (int i = 0; i < 100; i++) {
             // Scan the storage for the ward storage slot
@@ -83,9 +88,9 @@ library GodMode {
             vm().store(
                 address(base),
                 keccak256(abi.encode(target, uint256(i))),
-                bytes32(uint256(1))
+                bytes32(uint256(val))
             );
-            if (WardsAbstract(base).wards(target) == 1) {
+            if (WardsAbstract(base).wards(target) == val) {
                 // Found it
                 return;
             } else {
@@ -102,9 +107,14 @@ library GodMode {
         revert("Could not give auth access");
     }
 
-    /// @dev Gives `target` contract admin access on the `base`
-    function giveAuthAccess(WardsAbstract base, address target) internal {
-        giveAuthAccess(address(base), target);
+    /// @dev Set the ward for `base` for the specified `target`
+    function setWard(WardsAbstract base, address target, uint256 val) internal {
+        setWard(address(base), target, val);
+    }
+
+    /// @dev Set the ward for `base` for the specified `target`
+    function setWard(VatAbstract base, address target, uint256 val) internal {
+        setWard(address(base), target, val);
     }
 
     /// @dev Sets the balance for `who` to `amount` for `token`.

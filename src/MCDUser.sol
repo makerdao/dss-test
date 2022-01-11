@@ -23,7 +23,7 @@ import {MCD} from "./MCD.sol";
 /// @dev A user which can perform actions in MCD
 contract MCDUser {
 
-    using GodMode for DSTokenAbstract;
+    using GodMode for *;
 
     MCD mcd;
 
@@ -56,9 +56,12 @@ contract MCDUser {
         mcd.vat().frob(ilk, address(this), address(this), address(this), int256(ink), int256(art));
 
         // Temporarily increase the liquidation threshold to liquidate this one vault then reset it
-        mcd.vat().file(ilk, "spot", spot + 1);
+        uint256 prevWard = mcd.vat().wards(address(this));
+        mcd.vat().setWard(address(this), 1);
+        mcd.vat().file(ilk, "spot", spot / 2);
         mcd.dog().bark(ilk, address(this), address(this));
         mcd.vat().file(ilk, "spot", spot);
+        mcd.vat().setWard(address(this), prevWard);
     }
 
 }
