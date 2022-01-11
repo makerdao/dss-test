@@ -56,6 +56,13 @@ abstract contract DSSBaseTest is DSTest {
     uint256 constant RAD = 10 ** 45;
     uint256 constant BPS = 10 ** 4;
 
+    VatAbstract public vat;
+    DaiJoinAbstract public daiJoin;
+    DaiAbstract public dai;
+    VowAbstract public vow;
+    IlkRegistryAbstract public ilkRegistry;
+    // TODO add the rest
+
     function setUp() public virtual {
         vm = Vm(HEVM_ADDRESS);
     }
@@ -144,13 +151,6 @@ abstract contract DSSGoerliIntegrationTest is DSSBaseTest {
 }
 
 abstract contract DSSMainnetIntegrationTest is DSSBaseTest {
-
-    VatAbstract public vat;
-    DaiJoinAbstract public daiJoin;
-    DaiAbstract public dai;
-    VowAbstract public vow;
-    IlkRegistryAbstract public ilkRegistry;
-    // TODO add the rest
 
     function setUp() public virtual override {
         super.setUp();
