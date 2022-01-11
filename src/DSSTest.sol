@@ -101,6 +101,10 @@ abstract contract DSSBaseTest is DSTest {
     uint256 constant RAD = 10 ** 45;
     uint256 constant BPS = 10 ** 4;
 
+    uint256 constant THOUSAND = 10 ** 3;
+    uint256 constant MILLION = 10 ** 6;
+    uint256 constant BILLION = 10 ** 9;
+
     // Commonly used addresses
 
     // Core MCD
