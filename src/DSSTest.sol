@@ -35,8 +35,12 @@ abstract contract DSSTest is DSTest {
     MCD mcd;
 
     function setUp() public virtual {
+        mcd = setupEnv();
+
         postSetup();
     }
+
+    function setupEnv() internal virtual returns (MCD);
 
     function postSetup() internal virtual;
 

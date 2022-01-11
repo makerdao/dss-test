@@ -19,12 +19,29 @@ import "../DSSTest.sol";
 
 contract MainnetTest is DSSTest {
 
-    function postSetup() internal virtual override {
-        mcd = new MCDMainnet();
+    using GodMode for *;
+
+    MCDUser user1;
+    MCDUser user2;
+    MCDUser user3;
+
+    function setupEnv() internal virtual override returns (MCD) {
+        return new MCDMainnet();
     }
 
-    function test_sanity() public {
+    function postSetup() internal virtual override {
+        user1 = mcd.newUser();
+        user2 = mcd.newUser();
+        user3 = mcd.newUser();
+    }
+
+    function test_mcd_is_mainnet() public {
         assertEq(address(mcd.vat()), 0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B);
+    }
+
+    function test_give_tokens() public {
+        mcd.dai().setBalance(address(this), 100 ether);
+        assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
     }
 
 }

@@ -16,7 +16,7 @@
 pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
-import {WardsAbstract,DSTokenAbstract} from "dss-interfaces/Interfaces.sol";
+import {WardsAbstract,DSTokenAbstract,DaiAbstract} from "dss-interfaces/Interfaces.sol";
 
 // NOTE this contains some extra Foundry-only calls
 // If using DappTools check if things are available
@@ -107,8 +107,8 @@ library GodMode {
         giveAuthAccess(address(base), target);
     }
 
-    /// @dev Gives `who` `amount` number of tokens at address `token`.
-    function giveTokens(address token, address who, uint256 amount) internal {
+    /// @dev Sets the balance for `who` to `amount` for `token`.
+    function setBalance(address token, address who, uint256 amount) internal {
         // Edge case - balance is already set for some reason
         if (DSTokenAbstract(token).balanceOf(who) == amount) return;
 
@@ -140,9 +140,14 @@ library GodMode {
         revert("Could not give tokens");
     }
 
-    /// @dev Gives `who` `amount` number of tokens at address `token`.
-    function giveTokens(DSTokenAbstract token, address who, uint256 amount) internal {
-        giveTokens(address(token), who, amount);
+    /// @dev Sets the balance for `who` to `amount` for `token`.
+    function setBalance(DSTokenAbstract token, address who, uint256 amount) internal {
+        setBalance(address(token), who, amount);
+    }
+
+    /// @dev Sets the balance for `who` to `amount` for `token`.
+    function setBalance(DaiAbstract token, address who, uint256 amount) internal {
+        setBalance(address(token), who, amount);
     }
 
 }

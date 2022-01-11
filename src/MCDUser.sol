@@ -43,10 +43,12 @@ contract MCDUser {
         DSTokenAbstract token = DSTokenAbstract(join.gem());
         bytes32 ilk = join.ilk();
 
-        token.giveTokens(address(this), amount);
+        uint256 prevBalance = token.balanceOf(address(this));
+        token.setBalance(address(this), amount);
         uint256 prevAllowance = token.allowance(address(this), address(join));
         token.approve(address(join), amount);
         join.join(address(this), amount);
+        token.setBalance(address(this), prevBalance);
         token.approve(address(join), prevAllowance);
         (,uint256 rate, uint256 spot,,) = mcd.vat().ilks(ilk);
         uint256 art = spot * amount / rate;
