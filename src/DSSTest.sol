@@ -40,6 +40,23 @@ abstract contract DSSTest is DSTest {
         postSetup();
     }
 
+    function autoDetectEnv() internal returns (MCD) {
+        // Auto-detect using chainid
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        if (id == 1) {
+            // Ethereum Mainnet
+            return new MCDMainnet();
+        } else if (id == 5) {
+            // Goerli Testnet
+            return new MCDGoerli();
+        } else {
+            revert("Cannot auto-detect environment");
+        }
+    }
+
     function setupEnv() internal virtual returns (MCD);
 
     function postSetup() internal virtual;

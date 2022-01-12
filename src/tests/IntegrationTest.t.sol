@@ -13,11 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity 0.6.12;
+pragma solidity >=0.6.12;
 
 import "../DSSTest.sol";
 
-contract MainnetTest is DSSTest {
+abstract contract IntegrationTest is DSSTest {
 
     using GodMode for *;
 
@@ -26,17 +26,13 @@ contract MainnetTest is DSSTest {
     MCDUser user3;
 
     function setupEnv() internal virtual override returns (MCD) {
-        return new MCDMainnet();
+        return autoDetectEnv();
     }
 
     function postSetup() internal virtual override {
         user1 = mcd.newUser();
         user2 = mcd.newUser();
         user3 = mcd.newUser();
-    }
-
-    function test_mcd_is_mainnet() public {
-        assertEq(address(mcd.vat()), 0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B);
     }
 
     function test_give_tokens() public {
