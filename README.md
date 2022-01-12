@@ -1,6 +1,6 @@
 # dss-test
 
-Opinionated test framework for Maker repositories. Get up and running with MCD faster.
+Modern test framework for Maker repositories. Get up and running with MCD faster.
 
 ## Getting Started
 
