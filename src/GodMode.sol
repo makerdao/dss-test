@@ -13,8 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity >=0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.0;
 
 import {
     WardsAbstract,
@@ -70,7 +69,7 @@ library GodMode {
     
     address constant public VM_ADDR = address(bytes20(uint160(uint256(keccak256('hevm cheat code')))));
 
-    function vm() internal view returns (Vm) {
+    function vm() internal pure returns (Vm) {
         return Vm(VM_ADDR);
     }
 

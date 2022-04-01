@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity >=0.6.12;
+pragma solidity >=0.8.0;
 
 import "dss-interfaces/Interfaces.sol";
 
@@ -29,7 +29,7 @@ contract MCDUser {
 
     constructor(
         MCD _mcd
-    ) public {
+    ) {
         mcd = _mcd;
     }
 

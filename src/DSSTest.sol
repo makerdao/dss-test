@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity >=0.6.12;
+pragma solidity >=0.8.0;
 
 import "ds-test/test.sol";
 
@@ -53,12 +53,42 @@ abstract contract DSSTest is DSTest {
             // Goerli Testnet
             return new MCDGoerli();
         } else {
-            revert("Cannot auto-detect environment");
+            return new MCD();
         }
     }
 
-    function setupEnv() internal virtual returns (MCD);
+    function setupEnv() internal virtual returns (MCD) {
+        return new MCD();
+    }
 
-    function postSetup() internal virtual;
+    function postSetup() internal virtual {
+    }
+
+    function assertRevert(address target, bytes memory data, string memory expectedMessage) internal {
+        assertRevert(target, data, 0, expectedMessage);
+    }
+
+    function assertRevert(address target, bytes memory data, uint256 value, string memory expectedMessage) internal {
+        bool succeeded;
+        bytes memory response;
+        (succeeded, response) = target.call{value:value}(data);
+        if (succeeded) {
+            emit log("Error: call not reverted");
+            fail();
+        } else {
+            string memory message;
+            assembly {
+                let size := mload(add(response, 0x44))
+                message := mload(0x40)
+                mstore(message, size)
+                mstore(0x40, add(message, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+                returndatacopy(add(message, 0x20), 0x44, size)
+            }
+            if (keccak256(abi.encodePacked(message)) != keccak256(abi.encodePacked(expectedMessage))) {
+                emit log("Error: revert message not satisfied");
+                fail();
+            }
+        }
+    }
 
 }

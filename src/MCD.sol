@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity >=0.6.12;
+pragma solidity >=0.8.0;
 
 import "dss-interfaces/Interfaces.sol";
 
@@ -80,7 +80,7 @@ contract MCD {
 
 contract MCDMainnet is MCD {
 
-    constructor() public {
+    constructor() {
         loadFromChainlog(ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F));
     }
 
@@ -88,7 +88,7 @@ contract MCDMainnet is MCD {
 
 contract MCDGoerli is MCD {
 
-    constructor() public {
+    constructor() {
         loadFromChainlog(ChainlogAbstract(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F));
     }
 
