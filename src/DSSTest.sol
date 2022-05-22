@@ -21,6 +21,12 @@ import {GodMode} from "./GodMode.sol";
 import {MCD,MCDMainnet,MCDGoerli} from "./MCD.sol";
 import {MCDUser} from "./MCDUser.sol";
 
+interface AuthLike {
+    function wards(address) external view returns (uint256);
+    function rely(address) external;
+    function deny(address) external;
+}
+
 abstract contract DSSTest is DSTest {
 
     uint256 constant WAD = 10 ** 18;
@@ -33,6 +39,9 @@ abstract contract DSSTest is DSTest {
     uint256 constant BILLION = 10 ** 9;
 
     MCD mcd;
+
+    event Rely(address indexed usr);
+    event Deny(address indexed usr);
 
     function setUp() public virtual {
         mcd = setupEnv();
@@ -89,6 +98,51 @@ abstract contract DSSTest is DSTest {
                 fail();
             }
         }
+    }
+
+    function _tryRely(address base, address usr) private returns (bool ok) {
+        (ok,) = base.call(abi.encodeWithSignature("rely(address)", usr));
+    }
+    function _tryDeny(address base, address usr) private returns (bool ok) {
+        (ok,) = base.call(abi.encodeWithSignature("deny(address)", usr));
+    }
+    function _tryFile(address base, bytes32 what, address data) private returns (bool ok) {
+        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,address)", what, data));
+    }
+    function _tryFile(address base, bytes32 what, uint256 data) private returns (bool ok) {
+        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,address,uint256)", what, data));
+    }
+    function _tryFile(address base, bytes32 ilk, bytes32 what, address data) private returns (bool ok) {
+        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,bytes32,address)", ilk, what, data));
+    }
+    function _tryFile(address base, bytes32 ilk, bytes32 what, uint256 data) private returns (bool ok) {
+        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,bytes32,uint256)", ilk, what, data));
+    }
+
+    function checkRelyDeny(address _base) internal {
+        AuthLike base = AuthLike(_base);
+        uint256 ward = base.wards(address(this));
+
+        // Ensure we have admin access
+        GodMode.setWard(address(this), 1);
+
+        assertEq(base.wards(address(123)), 0);
+        vm.expectEmit(true, false, false, true);
+        emit Rely(address(123));
+        assertTrue(_tryRely(address(123)));
+        assertEq(base.wards(address(123)), 1);
+        vm.expectEmit(true, false, false, true);
+        emit Deny(address(123));
+        assertTrue(_tryDeny(address(123)));
+        assertEq(base.wards(address(123)), 0);
+
+        base.deny(address(this));
+
+        assertTrue(!_tryRely(address(123)));
+        assertTrue(!_tryDeny(address(123)));
+
+        // Reset admin access to what it was
+        GodMode.setWard(address(this), 1);
     }
 
 }
