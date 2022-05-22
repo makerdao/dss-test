@@ -15,13 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import "ds-test/test.sol";
+import "forge-std/Test.sol";
 
 import {GodMode} from "./GodMode.sol";
 import {MCD,MCDMainnet,MCDGoerli} from "./MCD.sol";
 import {MCDUser} from "./MCDUser.sol";
 
-abstract contract DSSTest is DSTest {
+abstract contract DSSTest is Test {
 
     uint256 constant WAD = 10 ** 18;
     uint256 constant RAY = 10 ** 27;
