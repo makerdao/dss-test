@@ -116,12 +116,12 @@ abstract contract DSSTest is Test {
     }
 
     /// @dev This is forge-only due to event checking
-    function checkAuth(address _base, string contractName) internal {
+    function checkAuth(address _base, string memory _contractName) internal {
         AuthLike base = AuthLike(_base);
         uint256 ward = base.wards(address(this));
 
         // Ensure we have admin access
-        GodMode.setWard(address(this), 1);
+        GodMode.setWard(_base, address(this), 1);
 
         assertEq(base.wards(TEST_ADDRESS), 0);
         vm.expectEmit(true, false, false, true);
@@ -135,11 +135,13 @@ abstract contract DSSTest is Test {
 
         base.deny(address(this));
 
-        assertTrue(!_tryRely(TEST_ADDRESS));
-        assertTrue(!_tryDeny(TEST_ADDRESS));
+        vm.expectRevert(abi.encodePacked(_contractName, "/not-authorized"));
+        base.rely(TEST_ADDRESS);
+        vm.expectRevert(abi.encodePacked(_contractName, "/not-authorized"));
+        base.deny(TEST_ADDRESS);
 
         // Reset admin access to what it was
-        GodMode.setWard(address(this), 1);
+        GodMode.setWard(_base, address(this), ward);
     }
 
 }

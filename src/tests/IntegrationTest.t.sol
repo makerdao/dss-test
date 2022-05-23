@@ -46,4 +46,10 @@ abstract contract IntegrationTest is DSSTest {
         assertEq(mcd.wethAClip().kicks(), prevKicks + 1);
     }
 
+    function test_auth() public {
+        // Test that the vesting contract has proper auth setup
+        // Note: can only test against newer style contracts that don't use LibNote
+        checkAuth(mcd.chainlog().getAddress("MCD_VEST_DAI"), "DssVest");
+    }
+
 }
