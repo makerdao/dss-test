@@ -119,13 +119,14 @@ abstract contract DSSTest is DSTest {
         (ok,) = base.call(abi.encodeWithSignature("file(bytes32,bytes32,uint256)", ilk, what, data));
     }
 
-    function checkRelyDeny(address _base) internal {
+    function checkAuth(address _base) internal {
         AuthLike base = AuthLike(_base);
         uint256 ward = base.wards(address(this));
 
         // Ensure we have admin access
         GodMode.setWard(address(this), 1);
 
+        // TODO - switch from tryXXX to expectRevert setup
         assertEq(base.wards(address(123)), 0);
         vm.expectEmit(true, false, false, true);
         emit Rely(address(123));
