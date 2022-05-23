@@ -27,6 +27,11 @@ interface AuthLike {
     function deny(address) external;
 }
 
+interface FileLike {
+    function file(bytes32, uint256) external;
+    function file(bytes32, address) external;
+}
+
 abstract contract DSSTest is Test {
 
     uint256 constant WAD = 10 ** 18;
@@ -102,19 +107,6 @@ abstract contract DSSTest is Test {
         }
     }
 
-    function _tryFile(address base, bytes32 what, address data) private returns (bool ok) {
-        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,address)", what, data));
-    }
-    function _tryFile(address base, bytes32 what, uint256 data) private returns (bool ok) {
-        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,address,uint256)", what, data));
-    }
-    function _tryFile(address base, bytes32 ilk, bytes32 what, address data) private returns (bool ok) {
-        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,bytes32,address)", ilk, what, data));
-    }
-    function _tryFile(address base, bytes32 ilk, bytes32 what, uint256 data) private returns (bool ok) {
-        (ok,) = base.call(abi.encodeWithSignature("file(bytes32,bytes32,uint256)", ilk, what, data));
-    }
-
     /// @dev This is forge-only due to event checking
     function checkAuth(address _base, string memory _contractName) internal {
         AuthLike base = AuthLike(_base);
@@ -139,6 +131,32 @@ abstract contract DSSTest is Test {
         base.rely(TEST_ADDRESS);
         vm.expectRevert(abi.encodePacked(_contractName, "/not-authorized"));
         base.deny(TEST_ADDRESS);
+
+        // Reset admin access to what it was
+        GodMode.setWard(_base, address(this), ward);
+    }
+
+    /// @dev This is forge-only due to event checking
+    function checkFileUint(address _base, string memory _contractName, string[] memory _values) internal {
+        FileLike base = FileLike(_base);
+        uint256 ward = base.wards(address(this));
+
+        // Ensure we have admin access
+        GodMode.setWard(_base, address(this), 1);
+
+        // First check an invalid values
+        vm.expectRevert(abi.encodePacked(_contractName, "/file-unrecognized-param"));
+        base.file("an invalid value", 1);
+
+        // Next check each value is valid and updates the target storage slot
+        for (uint256 i = 0; i < _values.length; i++) {
+            string memory value = _values[i];
+        }
+
+        // Finally check that file is authed
+        base.deny(address(this));
+        vm.expectRevert(abi.encodePacked(_contractName, "/not-authorized"));
+        base.file("some value", 1);
 
         // Reset admin access to what it was
         GodMode.setWard(_base, address(this), ward);
