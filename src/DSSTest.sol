@@ -38,6 +38,8 @@ abstract contract DSSTest is DSTest {
     uint256 constant MILLION = 10 ** 6;
     uint256 constant BILLION = 10 ** 9;
 
+    address constant TEST_ADDRESS = address(bytes20(uint160(uint256(keccak256('random test address')))));
+
     MCD mcd;
 
     event Rely(address indexed usr);
@@ -100,12 +102,6 @@ abstract contract DSSTest is DSTest {
         }
     }
 
-    function _tryRely(address base, address usr) private returns (bool ok) {
-        (ok,) = base.call(abi.encodeWithSignature("rely(address)", usr));
-    }
-    function _tryDeny(address base, address usr) private returns (bool ok) {
-        (ok,) = base.call(abi.encodeWithSignature("deny(address)", usr));
-    }
     function _tryFile(address base, bytes32 what, address data) private returns (bool ok) {
         (ok,) = base.call(abi.encodeWithSignature("file(bytes32,address)", what, data));
     }
@@ -119,28 +115,28 @@ abstract contract DSSTest is DSTest {
         (ok,) = base.call(abi.encodeWithSignature("file(bytes32,bytes32,uint256)", ilk, what, data));
     }
 
-    function checkAuth(address _base) internal {
+    /// @dev This is forge-only due to event checking
+    function checkAuth(address _base, string contractName) internal {
         AuthLike base = AuthLike(_base);
         uint256 ward = base.wards(address(this));
 
         // Ensure we have admin access
         GodMode.setWard(address(this), 1);
 
-        // TODO - switch from tryXXX to expectRevert setup
-        assertEq(base.wards(address(123)), 0);
+        assertEq(base.wards(TEST_ADDRESS), 0);
         vm.expectEmit(true, false, false, true);
-        emit Rely(address(123));
-        assertTrue(_tryRely(address(123)));
-        assertEq(base.wards(address(123)), 1);
+        emit Rely(TEST_ADDRESS);
+        base.rely(TEST_ADDRESS);
+        assertEq(base.wards(TEST_ADDRESS), 1);
         vm.expectEmit(true, false, false, true);
-        emit Deny(address(123));
-        assertTrue(_tryDeny(address(123)));
-        assertEq(base.wards(address(123)), 0);
+        emit Deny(TEST_ADDRESS);
+        base.deny(TEST_ADDRESS);
+        assertEq(base.wards(TEST_ADDRESS), 0);
 
         base.deny(address(this));
 
-        assertTrue(!_tryRely(address(123)));
-        assertTrue(!_tryDeny(address(123)));
+        assertTrue(!_tryRely(TEST_ADDRESS));
+        assertTrue(!_tryDeny(TEST_ADDRESS));
 
         // Reset admin access to what it was
         GodMode.setWard(address(this), 1);
