@@ -52,4 +52,16 @@ abstract contract IntegrationTest is DSSTest {
         checkAuth(mcd.chainlog().getAddress("MCD_VEST_DAI"), "DssVest");
     }
 
+    function test_file_uint() public {
+        // Test that the vesting contract has proper auth setup
+        // Note: can only test against newer style contracts that don't use LibNote
+        checkFileUint(mcd.chainlog().getAddress("MCD_END"), "End", ["wait"]);
+    }
+
+    function test_file_address() public {
+        // Test that the vesting contract has proper auth setup
+        // Note: can only test against newer style contracts that don't use LibNote
+        checkFileAddress(mcd.chainlog().getAddress("MCD_END"), "End", ["vat", "cat", "dog", "vow", "pot", "spot"]);
+    }
+
 }
