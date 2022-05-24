@@ -90,9 +90,7 @@ contract InvalidAuthContractDeny3 {
     constructor() { wards[msg.sender] = 1; emit Rely(msg.sender); }
 }
 
-contract UnitTest is DSSTest {
-
-    using GodMode for *;
+contract AuthUnitTest is DSSTest {
 
     function test_auth_valid() public {
         checkAuth(address(new ValidAuthContract()), "AuthContract");
