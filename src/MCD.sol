@@ -184,6 +184,7 @@ contract MCD {
     function giveAdminAccess(address who) public {
         if (address(vat) != address(0)) GodMode.setWard(address(vat), who, 1);
         if (address(daiJoin) != address(0)) GodMode.setWard(address(daiJoin), who, 1);
+        if (address(dai) != address(0)) GodMode.setWard(address(dai), who, 1);
         if (address(vow) != address(0)) GodMode.setWard(address(vow), who, 1);
         if (address(dog) != address(0)) GodMode.setWard(address(dog), who, 1);
         if (address(pot) != address(0)) GodMode.setWard(address(pot), who, 1);
