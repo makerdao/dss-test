@@ -76,6 +76,8 @@ contract MCD {
         spotter = SpotAbstract(_spotter);
         end = EndAbstract(_end);
         cure = CureAbstract(_cure);
+
+        giveAdminAccess(address(this));
     }
 
     function loadFromChainlog(ChainlogAbstract _chainlog) public {
