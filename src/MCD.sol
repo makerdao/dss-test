@@ -16,12 +16,17 @@
 pragma solidity >=0.8.0;
 
 import "dss-interfaces/Interfaces.sol";
+import {DSValue} from "ds-value/value.sol";
 
 import {MCDUser} from "./MCDUser.sol";
 import {GodMode} from "./GodMode.sol";
 
 /// @dev An instance of MCD with all relevant references
 contract MCD {
+
+    uint256 constant WAD = 10 ** 18;
+    uint256 constant RAY = 10 ** 27;
+    uint256 constant RAD = 10 ** 45;
 
     ChainlogAbstract public chainlog;
 
@@ -100,17 +105,6 @@ contract MCD {
 
     /// @dev Initialize the core of MCD
     function init() public {
-        require(vat != address(0), "vat not set");
-        require(daiJoin != address(0), "daiJoin not set");
-        require(dai != address(0), "dai not set");
-        require(vow != address(0), "vow not set");
-        require(dog != address(0), "dog not set");
-        require(pot != address(0), "pot not set");
-        require(jug != address(0), "jug not set");
-        require(spotter != address(0), "spotter not set");
-        require(end != address(0), "end not set");
-        require(cure != address(0), "cure not set");
-
         vat.rely(address(jug));
         vat.rely(address(dog));
         vat.rely(address(pot));
@@ -135,14 +129,23 @@ contract MCD {
         cure.rely(address(end));
     }
 
+    /// @dev Initialize a dummy ilk with a $1 DSValue pip without liquidations
+    function initIlk(
+        bytes32 ilk
+    ) public {
+        DSValue pip = new DSValue();
+        pip.poke(bytes32(WAD));
+        initIlk(ilk, address(0), address(pip));
+    }
+
     /// @dev Initialize an ilk with a $1 DSValue pip without liquidations
     function initIlk(
         bytes32 ilk,
         address join
     ) public {
         DSValue pip = new DSValue();
-        pip.poke(bytes32(10 ** 18));
-        initIlk(join, address(pip));
+        pip.poke(bytes32(WAD));
+        initIlk(ilk, join, address(pip));
     }
 
     /// @dev Initialize an ilk without liquidations
@@ -172,18 +175,19 @@ contract MCD {
         initIlk(ilk, join, pip);
 
         // TODO liquidations
+        clip; clipCalc;
     }
 
     /// @dev Give who a ward on all core contracts
     function giveAdminAccess(address who) public {
-        if (vat != address(0)) GodMode.setWard(address(vat), who, 1);
-        if (daiJoin != address(0)) GodMode.setWard(address(daiJoin), who, 1);
-        if (vow != address(0)) GodMode.setWard(address(vow), who, 1);
-        if (dog != address(0)) GodMode.setWard(address(dog), who, 1);
-        if (pot != address(0)) GodMode.setWard(address(pot), who, 1);
-        if (jug != address(0)) GodMode.setWard(address(jug), who, 1);
-        if (spotter != address(0)) GodMode.setWard(address(spotter), who, 1);
-        if (cure != address(0)) GodMode.setWard(address(cure), who, 1);
+        if (address(vat) != address(0)) GodMode.setWard(address(vat), who, 1);
+        if (address(daiJoin) != address(0)) GodMode.setWard(address(daiJoin), who, 1);
+        if (address(vow) != address(0)) GodMode.setWard(address(vow), who, 1);
+        if (address(dog) != address(0)) GodMode.setWard(address(dog), who, 1);
+        if (address(pot) != address(0)) GodMode.setWard(address(pot), who, 1);
+        if (address(jug) != address(0)) GodMode.setWard(address(jug), who, 1);
+        if (address(spotter) != address(0)) GodMode.setWard(address(spotter), who, 1);
+        if (address(cure) != address(0)) GodMode.setWard(address(cure), who, 1);
     }
 
     /// @dev Give who a ward on all core contracts to both caller and this MCD instance
