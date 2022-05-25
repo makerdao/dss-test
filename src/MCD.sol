@@ -189,6 +189,7 @@ contract MCD {
         if (address(pot) != address(0)) GodMode.setWard(address(pot), who, 1);
         if (address(jug) != address(0)) GodMode.setWard(address(jug), who, 1);
         if (address(spotter) != address(0)) GodMode.setWard(address(spotter), who, 1);
+        if (address(end) != address(0)) GodMode.setWard(address(end), who, 1);
         if (address(cure) != address(0)) GodMode.setWard(address(cure), who, 1);
     }
 
