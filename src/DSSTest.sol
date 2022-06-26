@@ -18,7 +18,7 @@ pragma solidity >=0.8.0;
 import "forge-std/Test.sol";
 
 import {GodMode} from "./GodMode.sol";
-import {MCD,MCDMainnet,MCDGoerli} from "./MCD.sol";
+import {MCD,Ilk,MCDMainnet,MCDGoerli} from "./MCD.sol";
 import {MCDUser} from "./MCDUser.sol";
 
 interface AuthLike {

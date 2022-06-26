@@ -64,4 +64,13 @@ abstract contract IntegrationTest is DSSTest {
         checkFileAddress(mcd.chainlog().getAddress("MCD_END"), "End", ["vat", "cat", "dog", "vow", "pot", "spot"]);
     }
 
+    function test_mcd_ilk() public {
+        Ilk memory ilk = mcd.getIlk("ETH", "A");
+
+        assertEq(address(ilk.gem), address(mcd.weth()));
+        assertEq(address(ilk.pip), address(mcd.wethPip()));
+        assertEq(address(ilk.join), address(mcd.wethAJoin()));
+        assertEq(address(ilk.clip), address(mcd.wethAClip()));
+    }
+
 }
