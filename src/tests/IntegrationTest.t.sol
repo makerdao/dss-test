@@ -73,4 +73,13 @@ abstract contract IntegrationTest is DSSTest {
         assertEq(address(ilk.clip), address(mcd.wethAClip()));
     }
 
+    function test_mcd_ilk_missing() public {
+        Ilk memory ilk = mcd.getIlk("TKN", "A");
+
+        assertEq(address(ilk.gem), address(0));
+        assertEq(address(ilk.pip), address(0));
+        assertEq(address(ilk.join), address(0));
+        assertEq(address(ilk.clip), address(0));
+    }
+
 }
