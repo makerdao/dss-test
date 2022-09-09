@@ -19,6 +19,13 @@ import "dss-interfaces/Interfaces.sol";
 
 import {MCDUser} from "./MCDUser.sol";
 
+struct Ilk {
+    DSTokenAbstract gem;
+    OsmAbstract pip;
+    GemJoinAbstract join;
+    ClipAbstract clip;
+}
+
 /// @dev An instance of MCD with all relevant references
 contract MCD {
 
@@ -32,6 +39,10 @@ contract MCD {
     PotAbstract public pot;
     JugAbstract public jug;
     SpotAbstract public spotter;
+    EndAbstract public end;
+    CureAbstract public cure;
+    FlapAbstract public flap;
+    FlopAbstract public flop;
 
     // ETH-A
     DSTokenAbstract public weth;
@@ -45,24 +56,55 @@ contract MCD {
     GemJoinAbstract public wbtcAJoin;
     ClipAbstract public wbtcAClip;
 
+    function getAddressOrNull(bytes32 key) public view returns (address) {
+        try chainlog.getAddress(key) returns (address a) {
+            return a;
+        } catch {
+            return address(0);
+        }
+    }
+
     function loadFromChainlog(ChainlogAbstract _chainlog) public {
         chainlog = _chainlog;
-        vat = VatAbstract(chainlog.getAddress("MCD_VAT"));
-        daiJoin = DaiJoinAbstract(chainlog.getAddress("MCD_JOIN_DAI"));
-        dai = DaiAbstract(chainlog.getAddress("MCD_DAI"));
-        vow = VowAbstract(chainlog.getAddress("MCD_VOW"));
-        dog = DogAbstract(chainlog.getAddress("MCD_DOG"));
-        pot = PotAbstract(chainlog.getAddress("MCD_POT"));
-        jug = JugAbstract(chainlog.getAddress("MCD_JUG"));
-        spotter = SpotAbstract(chainlog.getAddress("MCD_SPOT"));
-        weth = DSTokenAbstract(chainlog.getAddress("ETH"));
-        wethPip = OsmAbstract(chainlog.getAddress("PIP_ETH"));
-        wethAJoin = GemJoinAbstract(chainlog.getAddress("MCD_JOIN_ETH_A"));
-        wethAClip = ClipAbstract(chainlog.getAddress("MCD_CLIP_ETH_A"));
-        wbtc = DSTokenAbstract(chainlog.getAddress("WBTC"));
-        wbtcPip = OsmAbstract(chainlog.getAddress("PIP_WBTC"));
-        wbtcAJoin = GemJoinAbstract(chainlog.getAddress("MCD_JOIN_WBTC_A"));
-        wbtcAClip = ClipAbstract(chainlog.getAddress("MCD_CLIP_WBTC_A"));
+        vat = VatAbstract(getAddressOrNull("MCD_VAT"));
+        daiJoin = DaiJoinAbstract(getAddressOrNull("MCD_JOIN_DAI"));
+        dai = DaiAbstract(getAddressOrNull("MCD_DAI"));
+        vow = VowAbstract(getAddressOrNull("MCD_VOW"));
+        dog = DogAbstract(getAddressOrNull("MCD_DOG"));
+        pot = PotAbstract(getAddressOrNull("MCD_POT"));
+        jug = JugAbstract(getAddressOrNull("MCD_JUG"));
+        spotter = SpotAbstract(getAddressOrNull("MCD_SPOT"));
+        end = EndAbstract(getAddressOrNull("MCD_END"));
+        cure = CureAbstract(getAddressOrNull("MCD_CURE"));
+        flap = FlapAbstract(getAddressOrNull("MCD_FLAP"));
+        flop = FlopAbstract(getAddressOrNull("MCD_FLOP"));
+
+        weth = DSTokenAbstract(getAddressOrNull("ETH"));
+        wethPip = OsmAbstract(getAddressOrNull("PIP_ETH"));
+        wethAJoin = GemJoinAbstract(getAddressOrNull("MCD_JOIN_ETH_A"));
+        wethAClip = ClipAbstract(getAddressOrNull("MCD_CLIP_ETH_A"));
+
+        wbtc = DSTokenAbstract(getAddressOrNull("WBTC"));
+        wbtcPip = OsmAbstract(getAddressOrNull("PIP_WBTC"));
+        wbtcAJoin = GemJoinAbstract(getAddressOrNull("MCD_JOIN_WBTC_A"));
+        wbtcAClip = ClipAbstract(getAddressOrNull("MCD_CLIP_WBTC_A"));
+    }
+
+    function bytesToBytes32(bytes memory b) private pure returns (bytes32) {
+        bytes32 out;
+        for (uint256 i = 0; i < b.length; i++) {
+            out |= bytes32(b[i] & 0xFF) >> (i * 8);
+        }
+        return out;
+    }
+
+    function getIlk(string memory gem, string memory variant) public view returns (Ilk memory) {
+        return Ilk(
+            DSTokenAbstract(getAddressOrNull(bytesToBytes32(bytes(gem)))),
+            OsmAbstract(getAddressOrNull(bytesToBytes32(abi.encodePacked("PIP_", gem)))),
+            GemJoinAbstract(getAddressOrNull(bytesToBytes32(abi.encodePacked("MCD_JOIN_", gem, "_", variant)))),
+            ClipAbstract(getAddressOrNull(bytesToBytes32(abi.encodePacked("MCD_CLIP_", gem, "_", variant))))
+        );
     }
 
     function newUser() public returns (MCDUser) {
