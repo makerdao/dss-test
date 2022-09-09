@@ -21,7 +21,7 @@ import {
     DaiAbstract,
     VatAbstract
 } from "dss-interfaces/Interfaces.sol";
-import {Vm} from "forge-std/Vm";
+import {Vm} from "forge-std/Vm.sol";
 
 library GodMode {
     

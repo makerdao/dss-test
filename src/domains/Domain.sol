@@ -15,23 +15,23 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import {GodMode} from "./GodMode.sol";
+import "forge-std/Vm.sol";
+
+import {GodMode} from "../GodMode.sol";
 
 abstract contract Domain {
 
-    uint256 public immutable forkId;
+    Vm public vm;
+    uint256 public forkId;
 
-    constructor(string name) {
-        forkId = GodMode.vm().createFork(name);
-        GodMode.vm().makePersistent(address(this));
+    constructor(string memory name) {
+        vm = GodMode.vm();
+        forkId = vm.createFork(name);
+        vm.makePersistent(address(this));
     }
     
     function makeActive() public {
-        GodMode.vm().selectFork(forkId);
-    }
-
-    function isActive() public view returns (bool) {
-        return GodMode.vm().activeFork() == forkId;
+        vm.selectFork(forkId);
     }
 
 }

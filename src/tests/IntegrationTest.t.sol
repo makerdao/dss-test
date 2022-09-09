@@ -15,7 +15,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
+import "dss-interfaces/Interfaces.sol";
+
 import "../DSSTest.sol";
+import "../domains/MainnetDomain.sol";
+import "../domains/OptimismDomain.sol";
+
+interface OptimismDaiBridgeLike {
+    function depositERC20To(address, address, address, uint256, uint32, bytes calldata) external;
+}
 
 abstract contract IntegrationTest is DSSTest {
 
@@ -25,6 +33,9 @@ abstract contract IntegrationTest is DSSTest {
     MCDUser user2;
     MCDUser user3;
 
+    MainnetDomain mainnet;
+    OptimismDomain optimism;
+
     function setupEnv() internal virtual override returns (MCD) {
         return autoDetectEnv();
     }
@@ -33,6 +44,10 @@ abstract contract IntegrationTest is DSSTest {
         user1 = mcd.newUser();
         user2 = mcd.newUser();
         user3 = mcd.newUser();
+
+        mainnet = new MainnetDomain();
+        optimism = new OptimismDomain(mainnet);
+        mainnet.makeActive();
     }
 
     function test_give_tokens() public {
@@ -80,6 +95,25 @@ abstract contract IntegrationTest is DSSTest {
         assertEq(address(ilk.pip), address(0));
         assertEq(address(ilk.join), address(0));
         assertEq(address(ilk.clip), address(0));
+    }
+
+    function test_optimism_relay() public {
+        DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+
+        // Transfer some DAI across the Optimism bridge
+        mcd.dai().setBalance(address(this), 100 ether);
+        OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(mcd.chainlog().getAddress("OPTIMISM_DAI_BRIDGE"));
+        mcd.dai().approve(address(bridge), 100 ether);
+        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(123), 100 ether, 1_000_000, "");
+
+        // Message will be queued on L1, but not yet relayed
+        assertEq(mcd.dai().balanceOf(address(this)), 0);
+
+        // Relay the message
+        optimism.relayL1ToL2();
+
+        // We are on Optimism fork with message relayed now
+        assertEq(l2Dai.balanceOf(address(123)), 100 ether);
     }
 
 }
