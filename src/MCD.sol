@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017 DappHub, LLC
 // Copyright (C) 2021 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,6 +19,29 @@ pragma solidity >=0.8.0;
 import "dss-interfaces/Interfaces.sol";
 
 import {MCDUser} from "./MCDUser.sol";
+import {GodMode} from "./GodMode.sol";
+
+contract DSValue {
+    bool    has;
+    bytes32 val;
+    function peek() public view returns (bytes32, bool) {
+        return (val,has);
+    }
+    function read() external view returns (bytes32) {
+        bytes32 wut; bool haz;
+        (wut, haz) = peek();
+        require(haz, "haz-not");
+        return wut;
+    }
+    function poke(bytes32 wut) external {
+        val = wut;
+        has = true;
+    }
+    function void() external {
+        val = bytes32(0);
+        has = false;
+    }
+}
 
 struct Ilk {
     DSTokenAbstract gem;
@@ -29,8 +53,13 @@ struct Ilk {
 /// @dev An instance of MCD with all relevant references
 contract MCD {
 
-    // Core MCD
+    uint256 constant WAD = 10 ** 18;
+    uint256 constant RAY = 10 ** 27;
+    uint256 constant RAD = 10 ** 45;
+
     ChainlogAbstract public chainlog;
+
+    // Core MCD
     VatAbstract public vat;
     DaiJoinAbstract public daiJoin;
     DaiAbstract public dai;
@@ -64,8 +93,35 @@ contract MCD {
         }
     }
 
+    function loadCore(
+        address _vat,
+        address _daiJoin,
+        address _dai,
+        address _vow,
+        address _dog,
+        address _pot,
+        address _jug,
+        address _spotter,
+        address _end,
+        address _cure
+    ) public {
+        vat = VatAbstract(_vat);
+        daiJoin = DaiJoinAbstract(_daiJoin);
+        dai = DaiAbstract(_dai);
+        vow = VowAbstract(_vow);
+        dog = DogAbstract(_dog);
+        pot = PotAbstract(_pot);
+        jug = JugAbstract(_jug);
+        spotter = SpotAbstract(_spotter);
+        end = EndAbstract(_end);
+        cure = CureAbstract(_cure);
+
+        giveAdminAccess(address(this));
+    }
+
     function loadFromChainlog(ChainlogAbstract _chainlog) public {
         chainlog = _chainlog;
+
         vat = VatAbstract(getAddressOrNull("MCD_VAT"));
         daiJoin = DaiJoinAbstract(getAddressOrNull("MCD_JOIN_DAI"));
         dai = DaiAbstract(getAddressOrNull("MCD_DAI"));
@@ -107,15 +163,102 @@ contract MCD {
         );
     }
 
-    function newUser() public returns (MCDUser) {
-        return new MCDUser(this);
+    /// @dev Initialize the core of MCD
+    function init() public {
+        vat.rely(address(jug));
+        vat.rely(address(dog));
+        vat.rely(address(pot));
+        vat.rely(address(jug));
+        vat.rely(address(spotter));
+        vat.rely(address(end));
+
+        dai.rely(address(daiJoin));
+
+        dog.file("vow", address(vow));
+
+        pot.rely(address(end));
+
+        spotter.rely(address(end));
+
+        end.file("vat", address(vat));
+        end.file("pot", address(pot));
+        end.file("spot", address(spotter));
+        end.file("cure", address(cure));
+        end.file("vow", address(vow));
+
+        cure.rely(address(end));
     }
 
-    /// @dev Deploy a fresh new ilk
-    function deployIlk(
-        GemJoinAbstract join
+    /// @dev Initialize a dummy ilk with a $1 DSValue pip without liquidations
+    function initIlk(
+        bytes32 ilk
     ) public {
+        DSValue pip = new DSValue();
+        pip.poke(bytes32(WAD));
+        initIlk(ilk, address(0), address(pip));
+    }
 
+    /// @dev Initialize an ilk with a $1 DSValue pip without liquidations
+    function initIlk(
+        bytes32 ilk,
+        address join
+    ) public {
+        DSValue pip = new DSValue();
+        pip.poke(bytes32(WAD));
+        initIlk(ilk, join, address(pip));
+    }
+
+    /// @dev Initialize an ilk without liquidations
+    function initIlk(
+        bytes32 ilk,
+        address join,
+        address pip
+    ) public {
+        vat.init(ilk);
+        jug.init(ilk);
+
+        vat.rely(join);
+
+        spotter.file(ilk, "pip", pip);
+        spotter.file(ilk, "mat", RAY);
+        spotter.poke(ilk);
+    }
+
+    /// @dev Initialize an ilk with liquidations
+    function initIlk(
+        bytes32 ilk,
+        address join,
+        address pip,
+        address clip,
+        address clipCalc
+    ) public {
+        initIlk(ilk, join, pip);
+
+        // TODO liquidations
+        clip; clipCalc;
+    }
+
+    /// @dev Give who a ward on all core contracts
+    function giveAdminAccess(address who) public {
+        if (address(vat) != address(0)) GodMode.setWard(address(vat), who, 1);
+        if (address(dai) != address(0)) GodMode.setWard(address(dai), who, 1);
+        if (address(vow) != address(0)) GodMode.setWard(address(vow), who, 1);
+        if (address(dog) != address(0)) GodMode.setWard(address(dog), who, 1);
+        if (address(pot) != address(0)) GodMode.setWard(address(pot), who, 1);
+        if (address(jug) != address(0)) GodMode.setWard(address(jug), who, 1);
+        if (address(spotter) != address(0)) GodMode.setWard(address(spotter), who, 1);
+        if (address(end) != address(0)) GodMode.setWard(address(end), who, 1);
+        if (address(cure) != address(0)) GodMode.setWard(address(cure), who, 1);
+    }
+
+    /// @dev Give who a ward on all core contracts to both caller and this MCD instance
+    function giveAdminAccess() public {
+        giveAdminAccess(address(this));
+        giveAdminAccess(address(msg.sender));
+    }
+
+    function newUser() public returns (MCDUser) {
+        return new MCDUser(this);
     }
 
 }
