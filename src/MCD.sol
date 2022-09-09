@@ -16,10 +16,32 @@
 pragma solidity >=0.8.0;
 
 import "dss-interfaces/Interfaces.sol";
-import {DSValue} from "ds-value/value.sol";
 
 import {MCDUser} from "./MCDUser.sol";
 import {GodMode} from "./GodMode.sol";
+
+
+contract DSValue {
+    bool    has;
+    bytes32 val;
+    function peek() public view returns (bytes32, bool) {
+        return (val,has);
+    }
+    function read() external view returns (bytes32) {
+        bytes32 wut; bool haz;
+        (wut, haz) = peek();
+        require(haz, "haz-not");
+        return wut;
+    }
+    function poke(bytes32 wut) external {
+        val = wut;
+        has = true;
+    }
+    function void() external {
+        val = bytes32(0);
+        has = false;
+    }
+}
 
 struct Ilk {
     DSTokenAbstract gem;
