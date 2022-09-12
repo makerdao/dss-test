@@ -20,6 +20,7 @@ import "forge-std/Test.sol";
 import {GodMode} from "./GodMode.sol";
 import {MCD,Ilk,MCDMainnet,MCDGoerli} from "./MCD.sol";
 import {MCDUser} from "./MCDUser.sol";
+import {Domain} from "./domains/Domain.sol";
 
 interface AuthLike {
     function wards(address) external view returns (uint256);
@@ -46,6 +47,7 @@ abstract contract DSSTest is Test {
     address constant TEST_ADDRESS = address(bytes20(uint160(uint256(keccak256('random test address')))));
 
     MCD mcd;
+    Domain primaryDomain;
 
     event Rely(address indexed usr);
     event Deny(address indexed usr);
@@ -53,6 +55,10 @@ abstract contract DSSTest is Test {
     event File(bytes32 indexed what, address data);
 
     function setUp() public virtual {
+        primaryDomain = setupCrossChain();
+        if (address(primaryDomain) != address(0)) {
+            primaryDomain.makeActive();
+        }
         mcd = setupEnv();
 
         postSetup();
@@ -73,6 +79,10 @@ abstract contract DSSTest is Test {
         } else {
             return new MCD();
         }
+    }
+
+    function setupCrossChain() internal virtual returns (Domain) {
+        return Domain(address(0));
     }
 
     function setupEnv() internal virtual returns (MCD) {

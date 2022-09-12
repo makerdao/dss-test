@@ -23,6 +23,7 @@ import "../domains/OptimismDomain.sol";
 
 interface OptimismDaiBridgeLike {
     function depositERC20To(address, address, address, uint256, uint32, bytes calldata) external;
+    function withdrawTo(address, address, uint256, uint32, bytes calldata) external;
 }
 
 abstract contract IntegrationTest is DSSTest {
@@ -33,8 +34,11 @@ abstract contract IntegrationTest is DSSTest {
     MCDUser user2;
     MCDUser user3;
 
-    MainnetDomain mainnet;
     OptimismDomain optimism;
+
+    function setupCrossChain() internal virtual override returns (Domain) {
+        return new MainnetDomain();
+    }
 
     function setupEnv() internal virtual override returns (MCD) {
         return autoDetectEnv();
@@ -45,9 +49,7 @@ abstract contract IntegrationTest is DSSTest {
         user2 = mcd.newUser();
         user3 = mcd.newUser();
 
-        mainnet = new MainnetDomain();
-        optimism = new OptimismDomain(mainnet);
-        mainnet.makeActive();
+        optimism = new OptimismDomain(primaryDomain);
     }
 
     function test_give_tokens() public {
@@ -99,12 +101,13 @@ abstract contract IntegrationTest is DSSTest {
 
     function test_optimism_relay() public {
         DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+        OptimismDaiBridgeLike l2Bridge = OptimismDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
 
         // Transfer some DAI across the Optimism bridge
         mcd.dai().setBalance(address(this), 100 ether);
         OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(mcd.chainlog().getAddress("OPTIMISM_DAI_BRIDGE"));
         mcd.dai().approve(address(bridge), 100 ether);
-        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(123), 100 ether, 1_000_000, "");
+        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 100 ether, 1_000_000, "");
 
         // Message will be queued on L1, but not yet relayed
         assertEq(mcd.dai().balanceOf(address(this)), 0);
@@ -113,7 +116,18 @@ abstract contract IntegrationTest is DSSTest {
         optimism.relayL1ToL2();
 
         // We are on Optimism fork with message relayed now
-        assertEq(l2Dai.balanceOf(address(123)), 100 ether);
+        assertEq(l2Dai.balanceOf(address(this)), 100 ether);
+
+        // Queue up an L2 -> L1 message
+        l2Dai.approve(address(l2Bridge), 100 ether);
+        l2Bridge.withdrawTo(address(l2Dai), address(456), 100 ether, 1_000_000, "");
+        assertEq(l2Dai.balanceOf(address(this)), 0);
+
+        // Relay the message
+        optimism.relayL2ToL1();
+
+        // We are on Mainnet fork with message relayed now
+        assertEq(mcd.dai().balanceOf(address(456)), 100 ether);
     }
 
 }
