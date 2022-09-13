@@ -22,34 +22,32 @@ import {
     MainnetDomain
 } from "./MainnetDomain.sol";
 
-interface MessengerLike {
-    function relayMessage(
-        address _target,
-        address _sender,
-        bytes memory _message,
-        uint256 _messageNonce
-    ) external;
+interface InboxLike {
+    function bridge() external view returns (address);
 }
 
-contract OptimismDomain is Domain {
+interface BridgeLike {
+    function activeOutbox() external view returns (address);
+}
+
+interface OutboxLike {
+    function l2ToL1Sender() external view returns (address);
+}
+
+contract ArbitrumDomain is Domain {
 
     Domain public primaryDomain;
-    MessengerLike public l1messenger;
-    MessengerLike public l2messenger;
+    InboxLike public l1messenger;
+    //MessengerLike public l2messenger;
 
-    bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
+    bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("InboxMessageDelivered(uint256,bytes)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(Domain _primaryDomain) Domain("optimism") {
+    constructor(Domain _primaryDomain) Domain("arbitrum") {
         primaryDomain = _primaryDomain;
-        l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
-        l2messenger = MessengerLike(0x4200000000000000000000000000000000000007);
+        l1messenger = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
+        //l2messenger = MessengerLike(0x0000000000000000000000000000000000000064);
         vm.recordLogs();
-    }
-
-    function thisFails() external {
-        makeActive();
-        vm.getRecordedLogs();
     }
 
     function relayL1ToL2() external {
@@ -59,16 +57,26 @@ contract OptimismDomain is Domain {
             malias = address(uint160(address(l1messenger)) + OFFSET);
         }
 
-        // Read all L1 -> L2 messages and relay them under Optimism fork
+        // Read all L1 -> L2 messages and relay them under Arbitrum fork
         Vm.Log[] memory logs = vm.getRecordedLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
-            if (log.topics[0] == SENT_MESSAGE_TOPIC) {
-                address target = address(uint160(uint256(log.topics[1])));
-                (address sender, bytes memory message, uint40 nonce,) = abi.decode(log.data, (address, bytes, uint40, uint32));
+            if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
+                (,,, address target,, bytes memory message) = abi.decode(abi.decode(log.data, (bytes)), (uint8, uint256, uint256, address, uint256, bytes));
                 vm.startPrank(malias);
-                l2messenger.relayMessage(target, sender, message, nonce);
+                (bool success, bytes memory response) = target.call(message);
                 vm.stopPrank();
+                if (!success) {
+                    string memory rmessage;
+                    assembly {
+                        let size := mload(add(response, 0x44))
+                        rmessage := mload(0x40)
+                        mstore(rmessage, size)
+                        mstore(0x40, add(rmessage, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+                        returndatacopy(add(rmessage, 0x20), 0x44, size)
+                    }
+                    revert(rmessage);
+                }
             }
         }
     }
@@ -81,7 +89,7 @@ contract OptimismDomain is Domain {
         Vm.Log[] memory logs = vm.getRecordedLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
-            if (log.topics[0] == SENT_MESSAGE_TOPIC) {
+            if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
                 address target = address(uint160(uint256(log.topics[1])));
                 (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint40, uint32));
                 // Set xDomainMessageSender

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.16;
 
 import "dss-interfaces/Interfaces.sol";
 
@@ -26,7 +26,7 @@ interface OptimismDaiBridgeLike {
     function withdrawTo(address, address, uint256, uint32, bytes calldata) external;
 }
 
-abstract contract IntegrationTest is DSSTest {
+contract IntegrationTest is DSSTest {
 
     using GodMode for *;
 
@@ -102,10 +102,10 @@ abstract contract IntegrationTest is DSSTest {
     function test_optimism_relay() public {
         DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
         OptimismDaiBridgeLike l2Bridge = OptimismDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
-
-        // Transfer some DAI across the Optimism bridge
         mcd.dai().setBalance(address(this), 100 ether);
         OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(mcd.chainlog().getAddress("OPTIMISM_DAI_BRIDGE"));
+
+        // Transfer some DAI across the Optimism bridge
         mcd.dai().approve(address(bridge), 100 ether);
         bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 100 ether, 1_000_000, "");
 
@@ -120,14 +120,30 @@ abstract contract IntegrationTest is DSSTest {
 
         // Queue up an L2 -> L1 message
         l2Dai.approve(address(l2Bridge), 100 ether);
-        l2Bridge.withdrawTo(address(l2Dai), address(456), 100 ether, 1_000_000, "");
+        l2Bridge.withdrawTo(address(l2Dai), address(this), 100 ether, 1_000_000, "");
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
         optimism.relayL2ToL1();
 
         // We are on Mainnet fork with message relayed now
-        assertEq(mcd.dai().balanceOf(address(456)), 100 ether);
+        assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
+
+        // Go back and forth one more time
+        mcd.dai().approve(address(bridge), 50 ether);
+        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
+        assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
+
+        optimism.thisFails();
+
+        /*assertEq(l2Dai.balanceOf(address(this)), 50 ether);
+        l2Dai.approve(address(l2Bridge), 25 ether);
+        l2Bridge.withdrawTo(address(l2Dai), address(this), 25 ether, 1_000_000, "");
+        assertEq(l2Dai.balanceOf(address(this)), 25 ether);
+
+        optimism.relayL2ToL1();
+
+        assertEq(mcd.dai().balanceOf(address(this)), 75 ether);*/
     }
 
 }
