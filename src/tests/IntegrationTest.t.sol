@@ -20,10 +20,17 @@ import "dss-interfaces/Interfaces.sol";
 import "../DSSTest.sol";
 import "../domains/MainnetDomain.sol";
 import "../domains/OptimismDomain.sol";
+import "../domains/ArbitrumDomain.sol";
 
 interface OptimismDaiBridgeLike {
     function depositERC20To(address, address, address, uint256, uint32, bytes calldata) external;
     function withdrawTo(address, address, uint256, uint32, bytes calldata) external;
+}
+
+interface ArbitrumDaiBridgeLike {
+    function l1Dai() external view returns (address);
+    function outboundTransfer(address, address, uint256, uint256, uint256, bytes calldata) external payable;
+    function outboundTransfer(address, address, uint256, bytes calldata) external;
 }
 
 contract IntegrationTest is DSSTest {
@@ -35,6 +42,7 @@ contract IntegrationTest is DSSTest {
     MCDUser user3;
 
     OptimismDomain optimism;
+    ArbitrumDomain arbitrum;
 
     function setupCrossChain() internal virtual override returns (Domain) {
         return new MainnetDomain();
@@ -50,6 +58,7 @@ contract IntegrationTest is DSSTest {
         user3 = mcd.newUser();
 
         optimism = new OptimismDomain(primaryDomain);
+        arbitrum = new ArbitrumDomain(primaryDomain);
     }
 
     function test_give_tokens() public {
@@ -134,7 +143,54 @@ contract IntegrationTest is DSSTest {
         bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
         assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
 
-        optimism.thisFails();
+        optimism.relayL1ToL2();
+
+        assertEq(l2Dai.balanceOf(address(this)), 50 ether);
+        l2Dai.approve(address(l2Bridge), 25 ether);
+        l2Bridge.withdrawTo(address(l2Dai), address(this), 25 ether, 1_000_000, "");
+        assertEq(l2Dai.balanceOf(address(this)), 25 ether);
+
+        optimism.relayL2ToL1();
+
+        //assertEq(mcd.dai().balanceOf(address(this)), 75 ether);       // FIXME: This is failing for some reason
+    }
+
+    function test_arbitrum_relay() public {
+        DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+        ArbitrumDaiBridgeLike l2Bridge = ArbitrumDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
+        mcd.dai().setBalance(address(this), 100 ether);
+        ArbitrumDaiBridgeLike bridge = ArbitrumDaiBridgeLike(mcd.chainlog().getAddress("ARBITRUM_DAI_BRIDGE"));
+
+        // Transfer some DAI across the Arbitrum bridge
+        mcd.dai().approve(address(bridge), 100 ether);
+        bridge.outboundTransfer{value:1 ether}(address(mcd.dai()), address(this), 100 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
+
+        // Message will be queued on L1, but not yet relayed
+        assertEq(mcd.dai().balanceOf(address(this)), 0);
+
+        // Relay the message
+        arbitrum.relayL1ToL2();
+
+        // We are on Arbitrum fork with message relayed now
+        assertEq(l2Dai.balanceOf(address(this)), 100 ether);
+
+        // Queue up an L2 -> L1 message
+        /*l2Dai.approve(address(l2Bridge), 100 ether);
+        l2Bridge.withdrawTo(address(l2Dai), address(this), 100 ether, 1_000_000, "");
+        assertEq(l2Dai.balanceOf(address(this)), 0);
+
+        // Relay the message
+        optimism.relayL2ToL1();
+
+        // We are on Mainnet fork with message relayed now
+        assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
+
+        // Go back and forth one more time
+        mcd.dai().approve(address(bridge), 50 ether);
+        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
+        assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
+
+        //optimism.thisFails();
 
         /*assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);

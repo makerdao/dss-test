@@ -40,8 +40,13 @@ contract ArbitrumDomain is Domain {
     InboxLike public l1messenger;
     //MessengerLike public l2messenger;
 
-    bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("InboxMessageDelivered(uint256,bytes)");
+    bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
+
+    event Test(bytes);
+    event Num(uint256);
+    event Addr(address);
+    event Bool(bool);
 
     constructor(Domain _primaryDomain) Domain("arbitrum") {
         primaryDomain = _primaryDomain;
@@ -50,20 +55,30 @@ contract ArbitrumDomain is Domain {
         vm.recordLogs();
     }
 
+    function parseData(bytes memory orig) private  returns (address target, bytes memory message) {
+        // FIXME - this is not robust enough, only handling messages of a specific format
+        uint256 mlen;
+        (,,target ,,,,,,,, mlen) = abi.decode(orig, (uint256, uint256, address, uint256, uint256, uint256, address, address, uint256, uint256, uint256));
+        message = new bytes(mlen);
+        for (uint256 i = 0; i < mlen; i++) {
+            message[i] = orig[i + 352];
+        }
+        emit Test(message);
+    }
+
     function relayL1ToL2() external {
         makeActive();
-        address malias;
-        unchecked {
-            malias = address(uint160(address(l1messenger)) + OFFSET);
-        }
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
         Vm.Log[] memory logs = vm.getRecordedLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
             if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
-                (,,, address target,, bytes memory message) = abi.decode(abi.decode(log.data, (bytes)), (uint8, uint256, uint256, address, uint256, bytes));
-                vm.startPrank(malias);
+                // We need both the current event and the one that follows for all the relevant data
+                Vm.Log memory logWithData = logs[i + 1];
+                (,, address sender,,,) = abi.decode(log.data, (address, uint8, address, bytes32, uint256, uint64));
+                (address target, bytes memory message) = parseData(logWithData.data);
+                vm.startPrank(sender);
                 (bool success, bytes memory response) = target.call(message);
                 vm.stopPrank();
                 if (!success) {
