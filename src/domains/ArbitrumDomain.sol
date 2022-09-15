@@ -83,7 +83,9 @@ contract ArbitrumDomain is Domain {
     }
 
     function relayL1ToL2() external {
+        //revert("shows error msg");
         makeActive();
+        revert("doesn't show error msg");
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
         Vm.Log[] memory logs = vm.getRecordedLogs();
