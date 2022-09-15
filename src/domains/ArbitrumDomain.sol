@@ -34,6 +34,16 @@ interface OutboxLike {
     function l2ToL1Sender() external view returns (address);
 }
 
+contract ArbSysOverride {
+
+    event SendTxToL1(address sender, address target, bytes data);
+
+    function sendTxToL1(address target, bytes calldata message) external {
+        emit SendTxToL1(msg.sender, target, message);
+    }
+
+}
+
 contract ArbitrumDomain is Domain {
 
     Domain public primaryDomain;
@@ -53,6 +63,12 @@ contract ArbitrumDomain is Domain {
         l1messenger = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
         //l2messenger = MessengerLike(0x0000000000000000000000000000000000000064);
         vm.recordLogs();
+
+        // Need to replace ArbSys contract with custom code to make it compatible with revm
+        uint256 fork = vm.activeFork();
+        makeActive();
+        vm.etch(0x0000000000000000000000000000000000000064, vm.getCode("ArbitrumDomain.sol:ArbSysOverride"));
+        vm.selectFork(fork);
     }
 
     function parseData(bytes memory orig) private  returns (address target, bytes memory message) {

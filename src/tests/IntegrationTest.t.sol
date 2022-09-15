@@ -156,17 +156,18 @@ contract IntegrationTest is DSSTest {
     }
 
     function test_arbitrum_relay() public {
+        DaiAbstract l1Dai = mcd.dai();
         DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
         ArbitrumDaiBridgeLike l2Bridge = ArbitrumDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
-        mcd.dai().setBalance(address(this), 100 ether);
+        l1Dai.setBalance(address(this), 100 ether);
         ArbitrumDaiBridgeLike bridge = ArbitrumDaiBridgeLike(mcd.chainlog().getAddress("ARBITRUM_DAI_BRIDGE"));
 
         // Transfer some DAI across the Arbitrum bridge
-        mcd.dai().approve(address(bridge), 100 ether);
-        bridge.outboundTransfer{value:1 ether}(address(mcd.dai()), address(this), 100 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
+        l1Dai.approve(address(bridge), 100 ether);
+        bridge.outboundTransfer{value:1 ether}(address(l1Dai), address(this), 100 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
 
         // Message will be queued on L1, but not yet relayed
-        assertEq(mcd.dai().balanceOf(address(this)), 0);
+        assertEq(l1Dai.balanceOf(address(this)), 0);
 
         // Relay the message
         arbitrum.relayL1ToL2();
@@ -175,12 +176,12 @@ contract IntegrationTest is DSSTest {
         assertEq(l2Dai.balanceOf(address(this)), 100 ether);
 
         // Queue up an L2 -> L1 message
-        /*l2Dai.approve(address(l2Bridge), 100 ether);
-        l2Bridge.withdrawTo(address(l2Dai), address(this), 100 ether, 1_000_000, "");
+        l2Dai.approve(address(l2Bridge), 100 ether);
+        l2Bridge.outboundTransfer(address(l1Dai), address(this), 100 ether, "");
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        optimism.relayL2ToL1();
+        /*optimism.relayL2ToL1();
 
         // We are on Mainnet fork with message relayed now
         assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
