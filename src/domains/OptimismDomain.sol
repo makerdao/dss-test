@@ -45,11 +45,6 @@ contract OptimismDomain is Domain {
         vm.recordLogs();
     }
 
-    function makeCrash() external {
-        makeActive();
-        vm.startPrank(address(0));
-    }
-
     function relayL1ToL2() external {
         makeActive();
         address malias;
