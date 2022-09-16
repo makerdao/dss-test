@@ -41,6 +41,7 @@ contract ArbSysOverride {
     event SendTxToL1(address sender, address target, bytes data);
 
     function sendTxToL1(address target, bytes calldata message) external payable returns (uint256) {
+        revert("this should revert");
         emit SendTxToL1(msg.sender, target, message);
         return 0;
     }
