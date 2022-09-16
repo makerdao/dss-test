@@ -143,14 +143,14 @@ contract IntegrationTest is DSSTest {
         bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
         assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
 
-        optimism.relayL1ToL2();
+        optimism.makeCrash();
 
-        assertEq(l2Dai.balanceOf(address(this)), 50 ether);
+        /*assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);
         l2Bridge.withdrawTo(address(l2Dai), address(this), 25 ether, 1_000_000, "");
         assertEq(l2Dai.balanceOf(address(this)), 25 ether);
 
-        optimism.relayL2ToL1();
+        optimism.relayL2ToL1();*/
 
         //assertEq(mcd.dai().balanceOf(address(this)), 75 ether);       // FIXME: This is failing for some reason
     }
