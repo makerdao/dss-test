@@ -33,17 +33,15 @@ interface MessengerLike {
 
 contract OptimismDomain is Domain {
 
-    Domain public primaryDomain;
-    MessengerLike public l1messenger;
-    MessengerLike public l2messenger;
+    Domain public immutable primaryDomain;
+    MessengerLike constant public l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
+    MessengerLike constant public l2messenger = MessengerLike(0x4200000000000000000000000000000000000007);
 
     bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
     constructor(Domain _primaryDomain) Domain("optimism") {
         primaryDomain = _primaryDomain;
-        l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
-        l2messenger = MessengerLike(0x4200000000000000000000000000000000000007);
         vm.recordLogs();
     }
 

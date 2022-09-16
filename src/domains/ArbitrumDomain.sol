@@ -27,51 +27,64 @@ interface InboxLike {
 }
 
 interface BridgeLike {
-    function activeOutbox() external view returns (address);
-}
-
-interface OutboxLike {
-    function l2ToL1Sender() external view returns (address);
+    function rollup() external view returns (address);
+    function executeCall(
+        address,
+        uint256,
+        bytes calldata
+    ) external returns (bool, bytes memory);
+    function setOutbox(address, bool) external;
 }
 
 contract ArbSysOverride {
 
     event SendTxToL1(address sender, address target, bytes data);
 
-    function sendTxToL1(address target, bytes calldata message) external {
+    function sendTxToL1(address target, bytes calldata message) external payable returns (uint256) {
         emit SendTxToL1(msg.sender, target, message);
+        return 0;
     }
 
 }
 
 contract ArbitrumDomain is Domain {
 
-    Domain public primaryDomain;
-    InboxLike public l1messenger;
-    //MessengerLike public l2messenger;
+    Domain public immutable primaryDomain;
+    InboxLike public constant inbox = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
+    address public constant arbSys = 0x0000000000000000000000000000000000000064;
+    BridgeLike public immutable bridge;
+    address public l2ToL1Sender;
 
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
-    uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
-
-    event Test(bytes);
-    event Num(uint256);
-    event Addr(address);
-    event Bool(bool);
+    bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
     constructor(Domain _primaryDomain) Domain("arbitrum") {
         primaryDomain = _primaryDomain;
-        l1messenger = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
-        //l2messenger = MessengerLike(0x0000000000000000000000000000000000000064);
+        bridge = BridgeLike(inbox.bridge());
         vm.recordLogs();
+
+        // Make this contract a valid outbox
+        address _rollup = bridge.rollup();
+        vm.store(
+            address(bridge),
+            bytes32(uint256(8)),
+            bytes32(uint256(uint160(address(this))))
+        );
+        bridge.setOutbox(address(this), true);
+        vm.store(
+            address(bridge),
+            bytes32(uint256(8)),
+            bytes32(uint256(uint160(_rollup)))
+        );
 
         // Need to replace ArbSys contract with custom code to make it compatible with revm
         uint256 fork = vm.activeFork();
         makeActive();
-        vm.etch(0x0000000000000000000000000000000000000064, vm.getCode("ArbitrumDomain.sol:ArbSysOverride"));
+        vm.etch(arbSys, vm.getCode("ArbitrumDomain.sol:ArbSysOverride"));
         vm.selectFork(fork);
     }
 
-    function parseData(bytes memory orig) private  returns (address target, bytes memory message) {
+    function parseData(bytes memory orig) private pure returns (address target, bytes memory message) {
         // FIXME - this is not robust enough, only handling messages of a specific format
         uint256 mlen;
         (,,target ,,,,,,,, mlen) = abi.decode(orig, (uint256, uint256, address, uint256, uint256, uint256, address, address, uint256, uint256, uint256));
@@ -79,13 +92,10 @@ contract ArbitrumDomain is Domain {
         for (uint256 i = 0; i < mlen; i++) {
             message[i] = orig[i + 352];
         }
-        emit Test(message);
     }
 
     function relayL1ToL2() external {
-        //revert("shows error msg");
         makeActive();
-        revert("doesn't show error msg");
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
         Vm.Log[] memory logs = vm.getRecordedLogs();
@@ -118,27 +128,13 @@ contract ArbitrumDomain is Domain {
         primaryDomain.makeActive();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
-        // Note: We bypass the L1 messenger relay here because it's easier to not have to generate valid state roots / merkle proofs
         Vm.Log[] memory logs = vm.getRecordedLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
-            if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
-                address target = address(uint160(uint256(log.topics[1])));
-                (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint40, uint32));
-                // Set xDomainMessageSender
-                vm.store(
-                    address(l1messenger),
-                    bytes32(uint256(204)),
-                    bytes32(uint256(uint160(sender)))
-                );
-                vm.startPrank(address(l1messenger));
-                (bool success, bytes memory response) = target.call(message);
-                vm.stopPrank();
-                vm.store(
-                    address(l1messenger),
-                    bytes32(uint256(204)),
-                    bytes32(uint256(0))
-                );
+            if (log.topics[0] == SEND_TO_L1_TOPIC) {
+                (address sender, address target, bytes memory message) = abi.decode(log.data, (address, address, bytes));
+                l2ToL1Sender = sender;
+                (bool success, bytes memory response) = bridge.executeCall(target, 0, message);
                 if (!success) {
                     string memory rmessage;
                     assembly {
