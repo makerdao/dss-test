@@ -40,7 +40,7 @@ contract OptimismDomain is Domain {
     bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(Domain _primaryDomain) Domain("optimism") {
+    constructor(string memory name, Domain _primaryDomain) Domain(name) {
         primaryDomain = _primaryDomain;
         vm.recordLogs();
     }

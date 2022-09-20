@@ -19,7 +19,7 @@ import {Domain} from "./Domain.sol";
 
 contract MainnetDomain is Domain {
 
-    constructor() Domain("mainnet") {
+    constructor(string memory name) Domain(name) {
     }
     
 }

@@ -58,7 +58,7 @@ contract ArbitrumDomain is Domain {
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
-    constructor(Domain _primaryDomain) Domain("arbitrum") {
+    constructor(string memory name, Domain _primaryDomain) Domain(name) {
         primaryDomain = _primaryDomain;
         bridge = BridgeLike(inbox.bridge());
         vm.recordLogs();
