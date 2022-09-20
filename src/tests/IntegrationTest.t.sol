@@ -181,26 +181,26 @@ contract IntegrationTest is DSSTest {
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        optimism.relayL2ToL1();
+        arbitrum.relayL2ToL1();
 
         // We are on Mainnet fork with message relayed now
         assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
 
         // Go back and forth one more time
-        /*mcd.dai().approve(address(bridge), 50 ether);
-        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
+        mcd.dai().approve(address(bridge), 50 ether);
+        bridge.outboundTransfer{value:1 ether}(address(l1Dai), address(this), 50 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
         assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
 
-        //optimism.thisFails();
+        arbitrum.relayL1ToL2();
 
-        /*assertEq(l2Dai.balanceOf(address(this)), 50 ether);
+        assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);
-        l2Bridge.withdrawTo(address(l2Dai), address(this), 25 ether, 1_000_000, "");
+        l2Bridge.outboundTransfer(address(l1Dai), address(this), 25 ether, "");
         assertEq(l2Dai.balanceOf(address(this)), 25 ether);
 
-        optimism.relayL2ToL1();
+        arbitrum.relayL2ToL1();
 
-        assertEq(mcd.dai().balanceOf(address(this)), 75 ether);*/
+        assertEq(mcd.dai().balanceOf(address(this)), 75 ether);
     }
 
 }

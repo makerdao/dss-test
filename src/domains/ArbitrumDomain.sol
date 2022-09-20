@@ -41,7 +41,6 @@ contract ArbSysOverride {
     event SendTxToL1(address sender, address target, bytes data);
 
     function sendTxToL1(address target, bytes calldata message) external payable returns (uint256) {
-        revert("this should revert");
         emit SendTxToL1(msg.sender, target, message);
         return 0;
     }
@@ -81,7 +80,12 @@ contract ArbitrumDomain is Domain {
         // Need to replace ArbSys contract with custom code to make it compatible with revm
         uint256 fork = vm.activeFork();
         makeActive();
-        vm.etch(arbSys, vm.getCode("ArbitrumDomain.sol:ArbSysOverride"));
+        bytes memory bytecode = vm.getCode("ArbitrumDomain.sol:ArbSysOverride");
+        address deployed;
+        assembly {
+            deployed := create(0, add(bytecode, 0x20), mload(bytecode))
+        }
+        vm.etch(arbSys, deployed.code);
         vm.selectFork(fork);
     }
 
