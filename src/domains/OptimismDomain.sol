@@ -21,6 +21,7 @@ import {
     Domain,
     MainnetDomain
 } from "./MainnetDomain.sol";
+import { IBridgedDomain } from "./IBridgedDomain.sol";
 
 interface MessengerLike {
     function relayMessage(
@@ -31,7 +32,7 @@ interface MessengerLike {
     ) external;
 }
 
-contract OptimismDomain is Domain {
+contract OptimismDomain is Domain, IBridgedDomain {
 
     Domain public immutable primaryDomain;
     MessengerLike constant public l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
@@ -45,7 +46,7 @@ contract OptimismDomain is Domain {
         vm.recordLogs();
     }
 
-    function relayL1ToL2() external {
+    function relayL1ToL2() external override {
         makeActive();
         address malias;
         unchecked {
@@ -66,7 +67,7 @@ contract OptimismDomain is Domain {
         }
     }
 
-    function relayL2ToL1() external {
+    function relayL2ToL1() external override {
         primaryDomain.makeActive();
 
         // Read all L2 -> L1 messages and relay them under Primary fork

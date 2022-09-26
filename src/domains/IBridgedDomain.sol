@@ -15,23 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import {Vm} from "forge-std/Vm.sol";
-
-import {GodMode} from "../GodMode.sol";
-
-contract Domain {
-
-    Vm public vm;
-    uint256 public forkId;
-
-    constructor(string memory name) {
-        vm = GodMode.vm();
-        forkId = vm.createFork(name);
-        vm.makePersistent(address(this));
-    }
-    
-    function makeActive() public {
-        vm.selectFork(forkId);
-    }
-
+interface IBridgedDomain {
+    function relayL1ToL2() external;
+    function relayL2ToL1() external;
 }

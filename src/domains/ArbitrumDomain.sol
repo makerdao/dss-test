@@ -21,6 +21,7 @@ import {
     Domain,
     MainnetDomain
 } from "./MainnetDomain.sol";
+import { IBridgedDomain } from "./IBridgedDomain.sol";
 
 interface InboxLike {
     function bridge() external view returns (address);
@@ -47,7 +48,7 @@ contract ArbSysOverride {
 
 }
 
-contract ArbitrumDomain is Domain {
+contract ArbitrumDomain is Domain, IBridgedDomain {
 
     Domain public immutable primaryDomain;
     InboxLike public constant inbox = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
@@ -99,7 +100,7 @@ contract ArbitrumDomain is Domain {
         }
     }
 
-    function relayL1ToL2() external {
+    function relayL1ToL2() external override {
         makeActive();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
@@ -129,7 +130,7 @@ contract ArbitrumDomain is Domain {
         }
     }
 
-    function relayL2ToL1() external {
+    function relayL2ToL1() external override {
         primaryDomain.makeActive();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
