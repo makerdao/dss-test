@@ -21,7 +21,7 @@ import {
     Domain,
     MainnetDomain
 } from "./MainnetDomain.sol";
-import { IBridgedDomain } from "./IBridgedDomain.sol";
+import { BridgedDomain } from "./BridgedDomain.sol";
 
 interface MessengerLike {
     function relayMessage(
@@ -32,7 +32,7 @@ interface MessengerLike {
     ) external;
 }
 
-contract OptimismDomain is Domain, IBridgedDomain {
+contract OptimismDomain is BridgedDomain {
 
     Domain public immutable primaryDomain;
     MessengerLike constant public l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);

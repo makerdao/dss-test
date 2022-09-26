@@ -21,7 +21,7 @@ import {
     Domain,
     MainnetDomain
 } from "./MainnetDomain.sol";
-import { IBridgedDomain } from "./IBridgedDomain.sol";
+import { BridgedDomain } from "./BridgedDomain.sol";
 
 interface InboxLike {
     function bridge() external view returns (address);
@@ -48,7 +48,7 @@ contract ArbSysOverride {
 
 }
 
-contract ArbitrumDomain is Domain, IBridgedDomain {
+contract ArbitrumDomain is BridgedDomain {
 
     Domain public immutable primaryDomain;
     InboxLike public constant inbox = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);

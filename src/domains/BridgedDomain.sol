@@ -15,7 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-interface IBridgedDomain {
-    function relayL1ToL2() external;
-    function relayL2ToL1() external;
+import { Domain } from "./Domain.sol";
+
+abstract contract BridgedDomain is Domain {
+    function relayL1ToL2() external virtual;
+    function relayL2ToL1() external virtual;
 }
