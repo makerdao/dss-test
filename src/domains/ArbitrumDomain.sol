@@ -80,7 +80,7 @@ contract ArbitrumDomain is BridgedDomain {
 
         // Need to replace ArbSys contract with custom code to make it compatible with revm
         uint256 fork = vm.activeFork();
-        makeActive();
+        selectFork();
         bytes memory bytecode = vm.getCode("ArbitrumDomain.sol:ArbSysOverride");
         address deployed;
         assembly {
@@ -101,7 +101,7 @@ contract ArbitrumDomain is BridgedDomain {
     }
 
     function relayL1ToL2() external override {
-        makeActive();
+        selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
         Vm.Log[] memory logs = vm.getRecordedLogs();
@@ -131,7 +131,7 @@ contract ArbitrumDomain is BridgedDomain {
     }
 
     function relayL2ToL1() external override {
-        primaryDomain.makeActive();
+        primaryDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
         Vm.Log[] memory logs = vm.getRecordedLogs();

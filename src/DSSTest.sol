@@ -57,7 +57,7 @@ abstract contract DSSTest is Test {
     function setUp() public virtual {
         primaryDomain = setupCrossChain();
         if (address(primaryDomain) != address(0)) {
-            primaryDomain.makeActive();
+            primaryDomain.selectFork();
         }
         mcd = setupEnv();
 

@@ -47,7 +47,7 @@ contract OptimismDomain is BridgedDomain {
     }
 
     function relayL1ToL2() external override {
-        makeActive();
+        selectFork();
         address malias;
         unchecked {
             malias = address(uint160(address(l1messenger)) + OFFSET);
@@ -68,7 +68,7 @@ contract OptimismDomain is BridgedDomain {
     }
 
     function relayL2ToL1() external override {
-        primaryDomain.makeActive();
+        primaryDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
         // Note: We bypass the L1 messenger relay here because it's easier to not have to generate valid state roots / merkle proofs
