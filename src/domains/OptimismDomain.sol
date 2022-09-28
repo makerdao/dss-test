@@ -17,11 +17,7 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Vm.sol";
 
-import {
-    Domain,
-    MainnetDomain
-} from "./MainnetDomain.sol";
-import { BridgedDomain } from "./BridgedDomain.sol";
+import { Domain, BridgedDomain } from "./BridgedDomain.sol";
 
 interface MessengerLike {
     function relayMessage(
@@ -34,19 +30,17 @@ interface MessengerLike {
 
 contract OptimismDomain is BridgedDomain {
 
-    Domain public immutable primaryDomain;
     MessengerLike constant public l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
     MessengerLike constant public l2messenger = MessengerLike(0x4200000000000000000000000000000000000007);
 
-    bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
-    uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
+    bytes32 constant public SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
+    uint160 constant public OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(string memory name, Domain _primaryDomain) Domain(name) {
-        primaryDomain = _primaryDomain;
+    constructor(string memory name, Domain _hostDomain) Domain(name) BridgedDomain(_hostDomain) {
         vm.recordLogs();
     }
 
-    function relayL1ToL2() external override {
+    function relayFromHost() external override {
         selectFork();
         address malias;
         unchecked {
@@ -67,8 +61,8 @@ contract OptimismDomain is BridgedDomain {
         }
     }
 
-    function relayL2ToL1() external override {
-        primaryDomain.selectFork();
+    function relayToHost() external override {
+        hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
         // Note: We bypass the L1 messenger relay here because it's easier to not have to generate valid state roots / merkle proofs

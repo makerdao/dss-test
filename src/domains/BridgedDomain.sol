@@ -18,6 +18,13 @@ pragma solidity >=0.8.0;
 import { Domain } from "./Domain.sol";
 
 abstract contract BridgedDomain is Domain {
-    function relayL1ToL2() external virtual;
-    function relayL2ToL1() external virtual;
+
+    Domain public immutable hostDomain;
+
+    constructor(Domain _hostDomain) {
+        hostDomain = _hostDomain;
+    }
+
+    function relayFromHost() external virtual;
+    function relayToHost() external virtual;
 }

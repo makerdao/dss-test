@@ -17,7 +17,7 @@ pragma solidity >=0.8.0;
 
 import {Domain} from "./Domain.sol";
 
-contract MainnetDomain is Domain {
+contract RootDomain is Domain {
 
     constructor(string memory name) Domain(name) {
     }

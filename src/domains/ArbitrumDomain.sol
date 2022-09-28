@@ -17,11 +17,7 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Vm.sol";
 
-import {
-    Domain,
-    MainnetDomain
-} from "./MainnetDomain.sol";
-import { BridgedDomain } from "./BridgedDomain.sol";
+import { Domain, BridgedDomain } from "./BridgedDomain.sol";
 
 interface InboxLike {
     function bridge() external view returns (address);
@@ -50,7 +46,6 @@ contract ArbSysOverride {
 
 contract ArbitrumDomain is BridgedDomain {
 
-    Domain public immutable primaryDomain;
     InboxLike public constant inbox = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
     address public constant arbSys = 0x0000000000000000000000000000000000000064;
     BridgeLike public immutable bridge;
@@ -59,8 +54,7 @@ contract ArbitrumDomain is BridgedDomain {
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
-    constructor(string memory name, Domain _primaryDomain) Domain(name) {
-        primaryDomain = _primaryDomain;
+    constructor(string memory name, Domain _hostDomain) Domain(name) BridgedDomain(_hostDomain) {
         bridge = BridgeLike(inbox.bridge());
         vm.recordLogs();
 
@@ -100,7 +94,7 @@ contract ArbitrumDomain is BridgedDomain {
         }
     }
 
-    function relayL1ToL2() external override {
+    function relayFromHost() external override {
         selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
@@ -130,10 +124,10 @@ contract ArbitrumDomain is BridgedDomain {
         }
     }
 
-    function relayL2ToL1() external override {
-        primaryDomain.selectFork();
+    function relayToHost() external override {
+        hostDomain.selectFork();
 
-        // Read all L2 -> L1 messages and relay them under Primary fork
+        // Read all L2 -> L1 messages and relay them under host fork
         Vm.Log[] memory logs = vm.getRecordedLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];

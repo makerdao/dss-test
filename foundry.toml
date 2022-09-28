@@ -5,7 +5,7 @@ libs = ['lib']
 fs_permissions = [{ access = "read-write", path = "./"}]
 
 [profile.default.rpc_endpoints]
-mainnet = "${ETH_RPC_URL}"
+root = "${ETH_RPC_URL}"
 optimism = "${OPT_RPC_URL}"
 arbitrum = "${ARB_RPC_URL}"
 

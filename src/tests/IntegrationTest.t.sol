@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import "dss-interfaces/Interfaces.sol";
 
 import "../DSSTest.sol";
-import "../domains/MainnetDomain.sol";
+import "../domains/RootDomain.sol";
 import "../domains/OptimismDomain.sol";
 import "../domains/ArbitrumDomain.sol";
 
@@ -44,8 +44,8 @@ contract IntegrationTest is DSSTest {
     OptimismDomain optimism;
     ArbitrumDomain arbitrum;
 
-    function setupCrossChain() internal virtual override returns (Domain) {
-        return new MainnetDomain("mainnet");
+    function setupCrossChain() internal virtual override returns (RootDomain) {
+        return new RootDomain("root");
     }
 
     function setupEnv() internal virtual override returns (MCD) {
@@ -57,8 +57,8 @@ contract IntegrationTest is DSSTest {
         user2 = mcd.newUser();
         user3 = mcd.newUser();
 
-        optimism = new OptimismDomain("optimism", primaryDomain);
-        arbitrum = new ArbitrumDomain("arbitrum", primaryDomain);
+        optimism = new OptimismDomain("optimism", rootDomain);
+        arbitrum = new ArbitrumDomain("arbitrum", rootDomain);
     }
 
     function test_give_tokens() public {
@@ -122,7 +122,7 @@ contract IntegrationTest is DSSTest {
         assertEq(mcd.dai().balanceOf(address(this)), 0);
 
         // Relay the message
-        optimism.relayL1ToL2();
+        optimism.relayFromHost();
 
         // We are on Optimism fork with message relayed now
         assertEq(l2Dai.balanceOf(address(this)), 100 ether);
@@ -133,7 +133,7 @@ contract IntegrationTest is DSSTest {
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        optimism.relayL2ToL1();
+        optimism.relayToHost();
 
         // We are on Mainnet fork with message relayed now
         assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
@@ -143,14 +143,14 @@ contract IntegrationTest is DSSTest {
         bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
         assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
 
-        optimism.relayL1ToL2();
+        optimism.relayFromHost();
 
         assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);
         l2Bridge.withdrawTo(address(l2Dai), address(this), 25 ether, 1_000_000, "");
         assertEq(l2Dai.balanceOf(address(this)), 25 ether);
 
-        optimism.relayL2ToL1();
+        optimism.relayToHost();
 
         assertEq(mcd.dai().balanceOf(address(this)), 75 ether);
     }
@@ -170,7 +170,7 @@ contract IntegrationTest is DSSTest {
         assertEq(l1Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        arbitrum.relayL1ToL2();
+        arbitrum.relayFromHost();
 
         // We are on Arbitrum fork with message relayed now
         assertEq(l2Dai.balanceOf(address(this)), 100 ether);
@@ -181,7 +181,7 @@ contract IntegrationTest is DSSTest {
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        arbitrum.relayL2ToL1();
+        arbitrum.relayToHost();
 
         // We are on Mainnet fork with message relayed now
         assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
@@ -191,14 +191,14 @@ contract IntegrationTest is DSSTest {
         bridge.outboundTransfer{value:1 ether}(address(l1Dai), address(this), 50 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
         assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
 
-        arbitrum.relayL1ToL2();
+        arbitrum.relayFromHost();
 
         assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);
         l2Bridge.outboundTransfer(address(l1Dai), address(this), 25 ether, "");
         assertEq(l2Dai.balanceOf(address(this)), 25 ether);
 
-        arbitrum.relayL2ToL1();
+        arbitrum.relayToHost();
 
         assertEq(mcd.dai().balanceOf(address(this)), 75 ether);
     }
