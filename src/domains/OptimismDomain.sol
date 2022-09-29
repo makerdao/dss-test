@@ -36,7 +36,7 @@ contract OptimismDomain is BridgedDomain {
     bytes32 constant public SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant public OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(string memory name, Domain _hostDomain) Domain(name) BridgedDomain(_hostDomain) {
+    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
         vm.recordLogs();
     }
 

@@ -44,12 +44,12 @@ contract IntegrationTest is DSSTest {
     OptimismDomain optimism;
     ArbitrumDomain arbitrum;
 
-    function setupCrossChain() internal virtual override returns (RootDomain) {
-        return new RootDomain("root");
-    }
-
-    function setupEnv() internal virtual override returns (MCD) {
-        return autoDetectEnv();
+    function setupEnv() internal virtual override {
+        config = loadConfig("integration");
+        rootDomain = new RootDomain(config, "root");
+        rootDomain.selectFork();
+        rootDomain.loadMCDFromChainlog();
+        mcd = rootDomain.mcd(); // For ease of access
     }
 
     function postSetup() internal virtual override {
@@ -57,8 +57,8 @@ contract IntegrationTest is DSSTest {
         user2 = mcd.newUser();
         user3 = mcd.newUser();
 
-        optimism = new OptimismDomain("optimism", rootDomain);
-        arbitrum = new ArbitrumDomain("arbitrum", rootDomain);
+        optimism = new OptimismDomain(config, "optimism", rootDomain);
+        arbitrum = new ArbitrumDomain(config, "arbitrum", rootDomain);
     }
 
     function test_give_tokens() public {

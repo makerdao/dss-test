@@ -19,7 +19,7 @@ import {Domain} from "./Domain.sol";
 
 contract RootDomain is Domain {
 
-    constructor(string memory name) Domain(name) {
+    constructor(string memory _config, string memory _name) Domain(_config, _name) {
     }
     
 }

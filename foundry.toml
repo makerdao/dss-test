@@ -4,9 +4,4 @@ out = 'out'
 libs = ['lib']
 fs_permissions = [{ access = "read-write", path = "./"}]
 
-[profile.default.rpc_endpoints]
-root = "${ETH_RPC_URL}"
-optimism = "${OPT_RPC_URL}"
-arbitrum = "${ARB_RPC_URL}"
-
 # See more config options https://github.com/gakonst/foundry/tree/master/config

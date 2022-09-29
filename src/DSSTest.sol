@@ -18,7 +18,7 @@ pragma solidity >=0.8.0;
 import "forge-std/Test.sol";
 
 import {GodMode} from "./GodMode.sol";
-import {MCD,Ilk,MCDMainnet,MCDGoerli} from "./MCD.sol";
+import {MCD,Ilk} from "./MCD.sol";
 import {MCDUser} from "./MCDUser.sol";
 import {RootDomain} from "./domains/RootDomain.sol";
 
@@ -46,6 +46,7 @@ abstract contract DSSTest is Test {
 
     address constant TEST_ADDRESS = address(bytes20(uint160(uint256(keccak256('random test address')))));
 
+    string config;
     MCD mcd;
     RootDomain rootDomain;
 
@@ -55,38 +56,18 @@ abstract contract DSSTest is Test {
     event File(bytes32 indexed what, address data);
 
     function setUp() public virtual {
-        rootDomain = setupCrossChain();
-        if (address(rootDomain) != address(0)) {
-            rootDomain.selectFork();
-        }
-        mcd = setupEnv();
-
+        setupEnv();
         postSetup();
     }
 
-    function autoDetectEnv() internal returns (MCD) {
-        // Auto-detect using chainid
-        uint256 id;
-        assembly {
-            id := chainid()
-        }
-        if (id == 1) {
-            // Ethereum Mainnet
-            return new MCDMainnet();
-        } else if (id == 5) {
-            // Goerli Testnet
-            return new MCDGoerli();
-        } else {
-            return new MCD();
-        }
+    function loadConfig(string memory input) internal returns (string memory) {
+        string memory root = vm.projectRoot();
+        string memory chainInputFolder = string.concat("/script/input/", vm.toString(block.chainid), "/");
+        return vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
     }
 
-    function setupCrossChain() internal virtual returns (RootDomain) {
-        return RootDomain(address(0));
-    }
-
-    function setupEnv() internal virtual returns (MCD) {
-        return new MCD();
+    function setupEnv() internal virtual {
+        mcd = new MCD();
     }
 
     function postSetup() internal virtual {
