@@ -46,15 +46,18 @@ contract ArbSysOverride {
 
 contract ArbitrumDomain is BridgedDomain {
 
-    InboxLike public constant inbox = InboxLike(0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f);
-    address public constant arbSys = 0x0000000000000000000000000000000000000064;
+    InboxLike public immutable inbox;
+    address public immutable arbSys;
     BridgeLike public immutable bridge;
+
     address public l2ToL1Sender;
 
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
     constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
+        inbox = InboxLike(readConfigAddress("inbox"));
+        arbSys = readConfigAddress("arbSys");
         bridge = BridgeLike(inbox.bridge());
         vm.recordLogs();
 

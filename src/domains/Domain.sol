@@ -35,10 +35,30 @@ contract Domain {
         config = _config;
         name = _name;
         vm = GodMode.vm();
-        string memory rpc = vm.envString(config.readString(string.concat(".domains.", name, ".rpc")));
+        string memory rpc = vm.envString(readConfigString("rpc"));
         if (bytes(rpc).length == 0) revert(string.concat("Environment variable '", rpc, "' is not defined."));
         forkId = vm.createFork(rpc);
         vm.makePersistent(address(this));
+    }
+
+    function readConfigString(string memory key) public returns (string memory) {
+        return config.readString(string.concat(".domains.", name, ".", key));
+    }
+
+    function readConfigAddress(string memory key) public returns (address) {
+        return config.readAddress(string.concat(".domains.", name, ".", key));
+    }
+
+    function readConfigUint(string memory key) public returns (uint256) {
+        return config.readUint(string.concat(".domains.", name, ".", key));
+    }
+
+    function readConfigInt(string memory key) public returns (int256) {
+        return config.readInt(string.concat(".domains.", name, ".", key));
+    }
+
+    function readConfigBytes32(string memory key) public returns (bytes32) {
+        return config.readBytes32(string.concat(".domains.", name, ".", key));
     }
 
     function loadMCDFromChainlog() public {

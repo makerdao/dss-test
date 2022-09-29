@@ -30,13 +30,15 @@ interface MessengerLike {
 
 contract OptimismDomain is BridgedDomain {
 
-    MessengerLike constant public l1messenger = MessengerLike(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
-    MessengerLike constant public l2messenger = MessengerLike(0x4200000000000000000000000000000000000007);
+    MessengerLike public immutable l1Messenger;
+    MessengerLike public immutable l2Messenger;
 
-    bytes32 constant public SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
-    uint160 constant public OFFSET = uint160(0x1111000000000000000000000000000000001111);
+    bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
+    uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
     constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
+        l1Messenger = MessengerLike(readConfigAddress("l1Messenger"));
+        l2Messenger = MessengerLike(readConfigAddress("l2Messenger"));
         vm.recordLogs();
     }
 
@@ -44,7 +46,7 @@ contract OptimismDomain is BridgedDomain {
         selectFork();
         address malias;
         unchecked {
-            malias = address(uint160(address(l1messenger)) + OFFSET);
+            malias = address(uint160(address(l1Messenger)) + OFFSET);
         }
 
         // Read all L1 -> L2 messages and relay them under Optimism fork
@@ -55,7 +57,7 @@ contract OptimismDomain is BridgedDomain {
                 address target = address(uint160(uint256(log.topics[1])));
                 (address sender, bytes memory message, uint40 nonce,) = abi.decode(log.data, (address, bytes, uint40, uint32));
                 vm.startPrank(malias);
-                l2messenger.relayMessage(target, sender, message, nonce);
+                l2Messenger.relayMessage(target, sender, message, nonce);
                 vm.stopPrank();
             }
         }
@@ -74,15 +76,15 @@ contract OptimismDomain is BridgedDomain {
                 (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint40, uint32));
                 // Set xDomainMessageSender
                 vm.store(
-                    address(l1messenger),
+                    address(l1Messenger),
                     bytes32(uint256(204)),
                     bytes32(uint256(uint160(sender)))
                 );
-                vm.startPrank(address(l1messenger));
+                vm.startPrank(address(l1Messenger));
                 (bool success, bytes memory response) = target.call(message);
                 vm.stopPrank();
                 vm.store(
-                    address(l1messenger),
+                    address(l1Messenger),
                     bytes32(uint256(204)),
                     bytes32(uint256(0))
                 );
