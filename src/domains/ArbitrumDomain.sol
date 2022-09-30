@@ -97,7 +97,7 @@ contract ArbitrumDomain is BridgedDomain {
         }
     }
 
-    function relayFromHost() external override {
+    function relayFromHost(bool switchToGuest) external override {
         selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
@@ -125,9 +125,13 @@ contract ArbitrumDomain is BridgedDomain {
                 }
             }
         }
+
+        if (!switchToGuest) {
+            hostDomain.selectFork();
+        }
     }
 
-    function relayToHost() external override {
+    function relayToHost(bool switchToHost) external override {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under host fork
@@ -150,6 +154,10 @@ contract ArbitrumDomain is BridgedDomain {
                     revert(rmessage);
                 }
             }
+        }
+
+        if (!switchToHost) {
+            selectFork();
         }
     }
     

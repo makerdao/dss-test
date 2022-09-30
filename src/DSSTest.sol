@@ -20,7 +20,6 @@ import "forge-std/Test.sol";
 import {GodMode} from "./GodMode.sol";
 import {MCD,Ilk} from "./MCD.sol";
 import {MCDUser} from "./MCDUser.sol";
-import {RootDomain} from "./domains/RootDomain.sol";
 
 interface AuthLike {
     function wards(address) external view returns (uint256);
@@ -48,7 +47,6 @@ abstract contract DSSTest is Test {
 
     string config;
     MCD mcd;
-    RootDomain rootDomain;
 
     event Rely(address indexed usr);
     event Deny(address indexed usr);
@@ -60,10 +58,10 @@ abstract contract DSSTest is Test {
         postSetup();
     }
 
-    function loadConfig(string memory input) internal returns (string memory) {
+    function loadConfig(string memory input) internal {
         string memory root = vm.projectRoot();
         string memory chainInputFolder = string.concat("/script/input/", vm.toString(block.chainid), "/");
-        return vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
+        config = vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
     }
 
     function setupEnv() internal virtual {

@@ -42,7 +42,7 @@ contract OptimismDomain is BridgedDomain {
         vm.recordLogs();
     }
 
-    function relayFromHost() external override {
+    function relayFromHost(bool switchToGuest) external override {
         selectFork();
         address malias;
         unchecked {
@@ -61,9 +61,13 @@ contract OptimismDomain is BridgedDomain {
                 vm.stopPrank();
             }
         }
+
+        if (!switchToGuest) {
+            hostDomain.selectFork();
+        }
     }
 
-    function relayToHost() external override {
+    function relayToHost(bool switchToHost) external override {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
@@ -100,6 +104,10 @@ contract OptimismDomain is BridgedDomain {
                     revert(rmessage);
                 }
             }
+        }
+
+        if (!switchToHost) {
+            selectFork();
         }
     }
     
