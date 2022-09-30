@@ -37,7 +37,9 @@ contract IntegrationTest is DSSTest {
 
     using GodMode for *;
 
+    string config;
     RootDomain rootDomain;
+    MCD mcd;
 
     MCDUser user1;
     MCDUser user2;
@@ -47,7 +49,7 @@ contract IntegrationTest is DSSTest {
     ArbitrumDomain arbitrum;
 
     function setupEnv() internal virtual override {
-        loadConfig("integration");
+        config = readInput("integration");
 
         rootDomain = new RootDomain(config, "root");
         rootDomain.selectFork();

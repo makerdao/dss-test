@@ -45,9 +45,6 @@ abstract contract DSSTest is Test {
 
     address constant TEST_ADDRESS = address(bytes20(uint160(uint256(keccak256('random test address')))));
 
-    string config;
-    MCD mcd;
-
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, uint256 data);
@@ -58,14 +55,13 @@ abstract contract DSSTest is Test {
         postSetup();
     }
 
-    function loadConfig(string memory input) internal {
+    function readInput(string memory input) internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory chainInputFolder = string.concat("/script/input/", vm.toString(block.chainid), "/");
-        config = vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
+        return vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
     }
 
     function setupEnv() internal virtual {
-        mcd = new MCD();
     }
 
     function postSetup() internal virtual {
