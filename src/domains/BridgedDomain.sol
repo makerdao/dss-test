@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2021 Dai Foundation
+// Copyright (C) 2022 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,9 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity 0.8.13;
+pragma solidity >=0.8.0;
 
-import "./IntegrationTest.t.sol";
+import { Domain } from "./Domain.sol";
 
-contract IntegrationTest_0_8_13 is IntegrationTest {
+abstract contract BridgedDomain is Domain {
+
+    Domain public immutable hostDomain;
+
+    constructor(Domain _hostDomain) {
+        hostDomain = _hostDomain;
+    }
+
+    function relayFromHost(bool switchToGuest) external virtual;
+    function relayToHost(bool switchToHost) external virtual;
 }

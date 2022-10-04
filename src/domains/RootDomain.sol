@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2021 Dai Foundation
+// Copyright (C) 2022 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,9 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-pragma solidity 0.8.0;
+pragma solidity >=0.8.0;
 
-import "./IntegrationTest.t.sol";
+import {Domain} from "./Domain.sol";
 
-contract IntegrationTest_0_8_0 is IntegrationTest {
+contract RootDomain is Domain {
+
+    constructor(string memory _config, string memory _name) Domain(_config, _name) {
+    }
+    
 }
