@@ -18,19 +18,19 @@ pragma solidity >=0.8.0;
 import "dss-interfaces/Interfaces.sol";
 
 import {GodMode} from "./GodMode.sol";
-import {MCD} from "./MCD.sol";
+import {DssInstance} from "./MCD.sol";
 
 /// @dev A user which can perform actions in MCD
 contract MCDUser {
 
     using GodMode for *;
 
-    MCD mcd;
+    DssInstance dss;
 
     constructor(
-        MCD _mcd
+        DssInstance memory _dss
     ) {
-        mcd = _mcd;
+        dss = _dss;
     }
 
     /// @dev Create an auction on the provided ilk
@@ -50,18 +50,18 @@ contract MCDUser {
         join.join(address(this), amount);
         token.setBalance(address(this), prevBalance);
         token.approve(address(join), prevAllowance);
-        (,uint256 rate, uint256 spot,,) = mcd.vat().ilks(ilk);
+        (,uint256 rate, uint256 spot,,) = dss.vat.ilks(ilk);
         uint256 art = spot * amount / rate;
         uint256 ink = amount * (10 ** (18 - token.decimals()));
-        mcd.vat().frob(ilk, address(this), address(this), address(this), int256(ink), int256(art));
+        dss.vat.frob(ilk, address(this), address(this), address(this), int256(ink), int256(art));
 
         // Temporarily increase the liquidation threshold to liquidate this one vault then reset it
-        uint256 prevWard = mcd.vat().wards(address(this));
-        mcd.vat().setWard(address(this), 1);
-        mcd.vat().file(ilk, "spot", spot / 2);
-        mcd.dog().bark(ilk, address(this), address(this));
-        mcd.vat().file(ilk, "spot", spot);
-        mcd.vat().setWard(address(this), prevWard);
+        uint256 prevWard = dss.vat.wards(address(this));
+        dss.vat.setWard(address(this), 1);
+        dss.vat.file(ilk, "spot", spot / 2);
+        dss.dog.bark(ilk, address(this), address(this));
+        dss.vat.file(ilk, "spot", spot);
+        dss.vat.setWard(address(this), prevWard);
     }
 
 }

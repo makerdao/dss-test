@@ -18,7 +18,7 @@ pragma solidity >=0.8.0;
 import {stdJson} from "forge-std/StdJson.sol";
 import {ChainlogAbstract} from "dss-interfaces/Interfaces.sol";
 
-import {MCD} from "../MCD.sol";
+import {MCD,DssInstance} from "../MCD.sol";
 import {GodMode,Vm} from "../GodMode.sol";
 
 contract Domain {
@@ -27,7 +27,7 @@ contract Domain {
 
     string public config;
     string public name;
-    MCD public mcd;
+    DssInstance private _dss;
     Vm public vm;
     uint256 public forkId;
 
@@ -61,9 +61,12 @@ contract Domain {
         return config.readBytes32(string.concat(".domains.", name, ".", key));
     }
 
-    function loadMCDFromChainlog() public {
-        mcd = new MCD();
-        mcd.loadFromChainlog(ChainlogAbstract(config.readAddress(string.concat(".domains.", name, ".chainlog"))));
+    function loadDssFromChainlog() public {
+        _dss = MCD.loadFromChainlog(readConfigAddress("chainlog"));
+    }
+
+    function dss() public view returns (DssInstance memory) {
+        return _dss;
     }
     
     function selectFork() public {

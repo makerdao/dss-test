@@ -18,6 +18,7 @@ pragma solidity ^0.8.16;
 import "dss-interfaces/Interfaces.sol";
 
 import "../DSSTest.sol";
+import "../MCD.sol";
 import "../domains/RootDomain.sol";
 import "../domains/OptimismDomain.sol";
 import "../domains/ArbitrumDomain.sol";
@@ -36,10 +37,12 @@ interface ArbitrumDaiBridgeLike {
 contract IntegrationTest is DSSTest {
 
     using GodMode for *;
+    using MCD for DssInstance;
 
     string config;
     RootDomain rootDomain;
-    MCD mcd;
+    DssInstance dss;
+    DssIlkInstance weth;
 
     MCDUser user1;
     MCDUser user2;
@@ -53,78 +56,61 @@ contract IntegrationTest is DSSTest {
 
         rootDomain = new RootDomain(config, "root");
         rootDomain.selectFork();
-        rootDomain.loadMCDFromChainlog();
-        mcd = rootDomain.mcd(); // For ease of access
+        rootDomain.loadDssFromChainlog();
+        dss = rootDomain.dss(); // For ease of access
+        weth = dss.getIlk("ETH", "A");
     }
 
     function postSetup() internal virtual override {
-        user1 = mcd.newUser();
-        user2 = mcd.newUser();
-        user3 = mcd.newUser();
+        user1 = dss.newUser();
+        user2 = dss.newUser();
+        user3 = dss.newUser();
 
         optimism = new OptimismDomain(config, "optimism", rootDomain);
         arbitrum = new ArbitrumDomain(config, "arbitrum", rootDomain);
     }
 
     function test_give_tokens() public {
-        mcd.dai().setBalance(address(this), 100 ether);
-        assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
+        dss.dai.setBalance(address(this), 100 ether);
+        assertEq(dss.dai.balanceOf(address(this)), 100 ether);
     }
 
     function test_create_liquidation() public {
-        uint256 prevKicks = mcd.wethAClip().kicks();
-        user1.createAuction(mcd.wethAJoin(), 100 ether);
-        assertEq(mcd.wethAClip().kicks(), prevKicks + 1);
+        uint256 prevKicks = weth.clip.kicks();
+        user1.createAuction(weth.join, 100 ether);
+        assertEq(weth.clip.kicks(), prevKicks + 1);
     }
 
     function test_auth() public {
         // Test that the vesting contract has proper auth setup
         // Note: can only test against newer style contracts that don't use LibNote
-        checkAuth(mcd.chainlog().getAddress("MCD_VEST_DAI"), "DssVest");
+        checkAuth(dss.chainlog.getAddress("MCD_VEST_DAI"), "DssVest");
     }
 
     function test_file_uint() public {
         // Test that the end contract has proper file
         // Note: can only test against newer style contracts that don't use LibNote
-        checkFileUint(mcd.chainlog().getAddress("MCD_END"), "End", ["wait"]);
+        checkFileUint(dss.chainlog.getAddress("MCD_END"), "End", ["wait"]);
     }
 
     function test_file_address() public {
         // Test that the end contract has proper file
         // Note: can only test against newer style contracts that don't use LibNote
-        checkFileAddress(mcd.chainlog().getAddress("MCD_END"), "End", ["vat", "cat", "dog", "vow", "pot", "spot"]);
-    }
-
-    function test_mcd_ilk() public {
-        Ilk memory ilk = mcd.getIlk("ETH", "A");
-
-        assertEq(address(ilk.gem), address(mcd.weth()));
-        assertEq(address(ilk.pip), address(mcd.wethPip()));
-        assertEq(address(ilk.join), address(mcd.wethAJoin()));
-        assertEq(address(ilk.clip), address(mcd.wethAClip()));
-    }
-
-    function test_mcd_ilk_missing() public {
-        Ilk memory ilk = mcd.getIlk("TKN", "A");
-
-        assertEq(address(ilk.gem), address(0));
-        assertEq(address(ilk.pip), address(0));
-        assertEq(address(ilk.join), address(0));
-        assertEq(address(ilk.clip), address(0));
+        checkFileAddress(dss.chainlog.getAddress("MCD_END"), "End", ["vat", "cat", "dog", "vow", "pot", "spot"]);
     }
 
     function test_optimism_relay() public {
         DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
         OptimismDaiBridgeLike l2Bridge = OptimismDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
-        mcd.dai().setBalance(address(this), 100 ether);
-        OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(mcd.chainlog().getAddress("OPTIMISM_DAI_BRIDGE"));
+        dss.dai.setBalance(address(this), 100 ether);
+        OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(dss.chainlog.getAddress("OPTIMISM_DAI_BRIDGE"));
 
         // Transfer some DAI across the Optimism bridge
-        mcd.dai().approve(address(bridge), 100 ether);
-        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 100 ether, 1_000_000, "");
+        dss.dai.approve(address(bridge), 100 ether);
+        bridge.depositERC20To(address(dss.dai), address(l2Dai), address(this), 100 ether, 1_000_000, "");
 
         // Message will be queued on L1, but not yet relayed
-        assertEq(mcd.dai().balanceOf(address(this)), 0);
+        assertEq(dss.dai.balanceOf(address(this)), 0);
 
         // Relay the message
         optimism.relayFromHost(true);
@@ -141,12 +127,12 @@ contract IntegrationTest is DSSTest {
         optimism.relayToHost(true);
 
         // We are on Mainnet fork with message relayed now
-        assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
+        assertEq(dss.dai.balanceOf(address(this)), 100 ether);
 
         // Go back and forth one more time
-        mcd.dai().approve(address(bridge), 50 ether);
-        bridge.depositERC20To(address(mcd.dai()), address(l2Dai), address(this), 50 ether, 1_000_000, "");
-        assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
+        dss.dai.approve(address(bridge), 50 ether);
+        bridge.depositERC20To(address(dss.dai), address(l2Dai), address(this), 50 ether, 1_000_000, "");
+        assertEq(dss.dai.balanceOf(address(this)), 50 ether);
 
         optimism.relayFromHost(true);
 
@@ -157,15 +143,15 @@ contract IntegrationTest is DSSTest {
 
         optimism.relayToHost(true);
 
-        assertEq(mcd.dai().balanceOf(address(this)), 75 ether);
+        assertEq(dss.dai.balanceOf(address(this)), 75 ether);
     }
 
     function test_arbitrum_relay() public {
-        DaiAbstract l1Dai = mcd.dai();
+        DaiAbstract l1Dai = dss.dai;
         DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
         ArbitrumDaiBridgeLike l2Bridge = ArbitrumDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
         l1Dai.setBalance(address(this), 100 ether);
-        ArbitrumDaiBridgeLike bridge = ArbitrumDaiBridgeLike(mcd.chainlog().getAddress("ARBITRUM_DAI_BRIDGE"));
+        ArbitrumDaiBridgeLike bridge = ArbitrumDaiBridgeLike(dss.chainlog.getAddress("ARBITRUM_DAI_BRIDGE"));
 
         // Transfer some DAI across the Arbitrum bridge
         l1Dai.approve(address(bridge), 100 ether);
@@ -189,12 +175,12 @@ contract IntegrationTest is DSSTest {
         arbitrum.relayToHost(true);
 
         // We are on Mainnet fork with message relayed now
-        assertEq(mcd.dai().balanceOf(address(this)), 100 ether);
+        assertEq(dss.dai.balanceOf(address(this)), 100 ether);
 
         // Go back and forth one more time
-        mcd.dai().approve(address(bridge), 50 ether);
+        dss.dai.approve(address(bridge), 50 ether);
         bridge.outboundTransfer{value:1 ether}(address(l1Dai), address(this), 50 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
-        assertEq(mcd.dai().balanceOf(address(this)), 50 ether);
+        assertEq(dss.dai.balanceOf(address(this)), 50 ether);
 
         arbitrum.relayFromHost(true);
 
@@ -205,7 +191,7 @@ contract IntegrationTest is DSSTest {
 
         arbitrum.relayToHost(true);
 
-        assertEq(mcd.dai().balanceOf(address(this)), 75 ether);
+        assertEq(dss.dai.balanceOf(address(this)), 75 ether);
     }
 
 }
