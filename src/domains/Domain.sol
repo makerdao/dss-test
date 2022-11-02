@@ -61,6 +61,18 @@ contract Domain {
         return config.readBytes32(string.concat(".domains.", name, ".", key));
     }
 
+    function bytesToBytes32(bytes memory b) private pure returns (bytes32) {
+        bytes32 out;
+        for (uint256 i = 0; i < b.length; i++) {
+            out |= bytes32(b[i] & 0xFF) >> (i * 8);
+        }
+        return out;
+    }
+
+    function readConfigBytes32FromString(string memory key) public returns (bytes32) {
+        return bytesToBytes32(bytes(readConfigString(key)));
+    }
+
     function loadDssFromChainlog() public {
         _dss = MCD.loadFromChainlog(readConfigAddress("chainlog"));
     }

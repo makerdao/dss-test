@@ -57,6 +57,7 @@ struct DssInstance {
     CureAbstract cure;
     FlapAbstract flap;
     FlopAbstract flop;
+    ESMAbstract esm;
 }
 
 struct DssIlkInstance {
@@ -98,6 +99,7 @@ library MCD {
         dss.cure = CureAbstract(getAddressOrNull(dss, "MCD_CURE"));
         dss.flap = FlapAbstract(getAddressOrNull(dss, "MCD_FLAP"));
         dss.flop = FlopAbstract(getAddressOrNull(dss, "MCD_FLOP"));
+        dss.esm = ESMAbstract(getAddressOrNull(dss, "MCD_ESM"));
     }
 
     function bytesToBytes32(bytes memory b) private pure returns (bytes32) {
@@ -181,6 +183,7 @@ library MCD {
         if (address(dss.spotter) != address(0)) GodMode.setWard(address(dss.spotter), who, 1);
         if (address(dss.end) != address(0)) GodMode.setWard(address(dss.end), who, 1);
         if (address(dss.cure) != address(0)) GodMode.setWard(address(dss.cure), who, 1);
+        if (address(dss.esm) != address(0)) GodMode.setWard(address(dss.esm), who, 1);
     }
 
     /// @dev Give who a ward on all core contracts to this address
