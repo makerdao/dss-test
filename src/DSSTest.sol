@@ -17,7 +17,13 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Test.sol";
 
-import {GodMode} from "./GodMode.sol";
+import {
+    GodMode,
+    MCD,
+    MCDUser,
+    DssInstance,
+    DssIlkInstance
+} from "./MCD.sol";
 
 interface AuthLike {
     function wards(address) external view returns (uint256);
