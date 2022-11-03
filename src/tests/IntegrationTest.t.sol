@@ -18,7 +18,6 @@ pragma solidity ^0.8.16;
 import "dss-interfaces/Interfaces.sol";
 
 import "../DSSTest.sol";
-import "../MCD.sol";
 import "../domains/RootDomain.sol";
 import "../domains/OptimismDomain.sol";
 import "../domains/ArbitrumDomain.sol";
@@ -42,7 +41,7 @@ contract IntegrationTest is DSSTest {
     string config;
     RootDomain rootDomain;
     DssInstance dss;
-    DssIlkInstance weth;
+    DssIlkInstance ethA;
 
     MCDUser user1;
     MCDUser user2;
@@ -58,7 +57,7 @@ contract IntegrationTest is DSSTest {
         rootDomain.selectFork();
         rootDomain.loadDssFromChainlog();
         dss = rootDomain.dss(); // For ease of access
-        weth = dss.getIlk("ETH", "A");
+        ethA = dss.getIlk("ETH", "A");
     }
 
     function postSetup() internal virtual override {
@@ -76,9 +75,9 @@ contract IntegrationTest is DSSTest {
     }
 
     function test_create_liquidation() public {
-        uint256 prevKicks = weth.clip.kicks();
-        user1.createAuction(weth.join, 100 ether);
-        assertEq(weth.clip.kicks(), prevKicks + 1);
+        uint256 prevKicks = ethA.clip.kicks();
+        user1.createAuction(ethA.join, 100 ether);
+        assertEq(ethA.clip.kicks(), prevKicks + 1);
     }
 
     function test_auth() public {
