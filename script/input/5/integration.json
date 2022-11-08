@@ -1,0 +1,23 @@
+{
+    "domains": {
+        "root": {
+            "rpc": "ETH_RPC_URL",
+            "chainlog": "0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F"
+        },
+        "optimism": {
+            "rpc": "OPT_RPC_URL",
+            "l1Messenger": "0x5086d1eEF304eb5284A0f6720f79403b4e9bE294",
+            "l2Messenger": "0x4200000000000000000000000000000000000007"
+        },
+        "arbitrum": {
+            "rpc": "ARB_RPC_URL",
+            "inbox": "0x6BEbC4925716945D46F0Ec336D5C2564F419682C",
+            "arbSys": "0x0000000000000000000000000000000000000064"
+        },
+        "zkSync": {
+            "rpc": "ZKSYNC_RPC_URL",
+            "zkSyncMailbox": "0xcB3D5008e03Bf569dcdf17259Fa30726ED646931",
+            "l1MessengerContract": "0x0000000000000000000000000000000000008008"
+        }
+    }
+}
