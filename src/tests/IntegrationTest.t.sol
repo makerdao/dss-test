@@ -50,7 +50,7 @@ contract IntegrationTest is DSSTest {
     OptimismDomain optimism;
     ArbitrumDomain arbitrum;
 
-    function setupEnv() internal virtual override {
+    function setUp() public virtual {
         config = readInput("integration");
 
         rootDomain = new RootDomain(config, "root");
@@ -58,9 +58,7 @@ contract IntegrationTest is DSSTest {
         rootDomain.loadDssFromChainlog();
         dss = rootDomain.dss(); // For ease of access
         ethA = dss.getIlk("ETH", "A");
-    }
 
-    function postSetup() internal virtual override {
         user1 = dss.newUser();
         user2 = dss.newUser();
         user3 = dss.newUser();

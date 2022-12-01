@@ -54,21 +54,10 @@ abstract contract DSSTest is Test {
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
 
-    function setUp() public virtual {
-        setupEnv();
-        postSetup();
-    }
-
     function readInput(string memory input) internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory chainInputFolder = string.concat("/script/input/", vm.toString(block.chainid), "/");
         return vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
-    }
-
-    function setupEnv() internal virtual {
-    }
-
-    function postSetup() internal virtual {
     }
 
     function assertRevert(address target, bytes memory data, string memory expectedMessage) internal {
