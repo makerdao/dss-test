@@ -12,7 +12,7 @@ There is a special `GodMode` library which provides useful functions such as giv
 
 ### MCD
 
-An `DssInstance` is mostly just for keeping a bundle of references to all the common mcd contracts. If you are doing integration testing this can be loaded from the chainlog automatically with `MCD.loadFromChainlog()`. `MCD` also provides some high level functions:
+A `DssInstance` is mostly just for keeping a bundle of references to all the common mcd contracts. If you are doing integration testing this can be loaded from the chainlog automatically with `MCD.loadFromChainlog()`. `MCD` also provides some high level functions:
 
  * `initIlk(...)` - This will deploy a new ilk to the `DssInstance` along with standard liquidation and oracle components.
 
