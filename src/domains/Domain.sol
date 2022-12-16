@@ -25,20 +25,18 @@ contract Domain {
 
     using stdJson for string;
 
-    string public config;
-    string public name;
     DssInstance private _dss;
-    Vm public vm;
+
+    string  public config;
+    string  public name;
+    Vm      public vm;
     uint256 public forkId;
+    uint256 public live = 0;
 
     constructor(string memory _config, string memory _name) {
         config = _config;
         name = _name;
         vm = GodMode.vm();
-        string memory rpc = vm.envString(readConfigString("rpc"));
-        if (bytes(rpc).length == 0) revert(string.concat("Environment variable '", rpc, "' is not defined."));
-        forkId = vm.createFork(rpc);
-        vm.makePersistent(address(this));
     }
 
     function readConfigString(string memory key) public returns (string memory) {
@@ -80,9 +78,32 @@ contract Domain {
     function dss() public view returns (DssInstance memory) {
         return _dss;
     }
-    
+
+    function loadFork(uint256 _forkId) public {
+        forkId = _forkId;
+        live = 1;
+        vm.makePersistent(address(this));
+    }
+
+    function loadConfig() public virtual {
+        string memory rpcEnv = readConfigString("rpc");
+        string memory rpc = vm.envString(rpcEnv);
+        if (bytes(rpc).length > 0) {
+            live = 1;
+            forkId = vm.createFork(rpc);
+            uint256 domainBlock = vm.envUint(readConfigString("block"));
+            if (domainBlock > 0) {
+                rollFork(domainBlock);
+            }
+            vm.makePersistent(address(this));
+        }
+    }
+
     function selectFork() public {
         vm.selectFork(forkId);
     }
 
+    function rollFork(uint256 blockNum) public {
+        vm.rollFork(forkId, blockNum);
+    }
 }

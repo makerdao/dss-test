@@ -46,45 +46,58 @@ contract ArbSysOverride {
 
 contract ArbitrumDomain is BridgedDomain {
 
-    InboxLike public immutable inbox;
-    address public immutable arbSys;
-    BridgeLike public immutable bridge;
+    InboxLike  public inbox;
+    address    public arbSys;
+    BridgeLike public bridge;
 
     address public l2ToL1Sender;
 
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
-    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
-        inbox = InboxLike(readConfigAddress("inbox"));
-        arbSys = readConfigAddress("arbSys");
-        bridge = BridgeLike(inbox.bridge());
-        vm.recordLogs();
+    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {}
 
-        // Make this contract a valid outbox
-        address _rollup = bridge.rollup();
-        vm.store(
-            address(bridge),
-            bytes32(uint256(8)),
-            bytes32(uint256(uint160(address(this))))
-        );
-        bridge.setOutbox(address(this), true);
-        vm.store(
-            address(bridge),
-            bytes32(uint256(8)),
-            bytes32(uint256(uint160(_rollup)))
-        );
+    function loadConfig() public override {
+        string memory rpcEnv = readConfigString("rpc");
+        string memory rpc = vm.envString(rpcEnv);
+        if (bytes(rpc).length > 0) {
+            live = 1;
+            forkId = vm.createFork(rpc);
+            uint256 domainBlock = vm.envUint(readConfigString("block"));
+            if (domainBlock > 0) {
+                rollFork(domainBlock);
+            }
 
-        // Need to replace ArbSys contract with custom code to make it compatible with revm
-        uint256 fork = vm.activeFork();
-        selectFork();
-        bytes memory bytecode = vm.getCode("ArbitrumDomain.sol:ArbSysOverride");
-        address deployed;
-        assembly {
-            deployed := create(0, add(bytecode, 0x20), mload(bytecode))
+            inbox = InboxLike(readConfigAddress("inbox"));
+            arbSys = readConfigAddress("arbSys");
+            bridge = BridgeLike(inbox.bridge());
+            vm.recordLogs();
+
+            // Make this contract a valid outbox
+            address _rollup = bridge.rollup();
+            vm.store(
+                address(bridge),
+                bytes32(uint256(8)),
+                bytes32(uint256(uint160(address(this))))
+            );
+            bridge.setOutbox(address(this), true);
+            vm.store(
+                address(bridge),
+                bytes32(uint256(8)),
+                bytes32(uint256(uint160(_rollup)))
+            );
+
+            // Need to replace ArbSys contract with custom code to make it compatible with revm
+            uint256 fork = vm.activeFork();
+            selectFork();
+            bytes memory bytecode = vm.getCode("ArbitrumDomain.sol:ArbSysOverride");
+            address deployed;
+            assembly {
+                deployed := create(0, add(bytecode, 0x20), mload(bytecode))
+            }
+            vm.etch(arbSys, deployed.code);
+            vm.selectFork(fork);
         }
-        vm.etch(arbSys, deployed.code);
-        vm.selectFork(fork);
     }
 
     function parseData(bytes memory orig) private pure returns (address target, bytes memory message) {
@@ -160,5 +173,5 @@ contract ArbitrumDomain is BridgedDomain {
             selectFork();
         }
     }
-    
+
 }

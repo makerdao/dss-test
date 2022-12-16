@@ -30,16 +30,29 @@ interface MessengerLike {
 
 contract OptimismDomain is BridgedDomain {
 
-    MessengerLike public immutable l1Messenger;
-    MessengerLike public immutable l2Messenger;
+    MessengerLike public l1Messenger;
+    MessengerLike public l2Messenger;
 
     bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
-        l1Messenger = MessengerLike(readConfigAddress("l1Messenger"));
-        l2Messenger = MessengerLike(readConfigAddress("l2Messenger"));
-        vm.recordLogs();
+    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {}
+
+    function loadConfig() public override {
+        string memory rpcEnv = readConfigString("rpc");
+        string memory rpc = vm.envString(rpcEnv);
+        if (bytes(rpc).length > 0) {
+            live = 1;
+            forkId = vm.createFork(rpc);
+            uint256 domainBlock = vm.envUint(readConfigString("block"));
+            if (domainBlock > 0) {
+                rollFork(domainBlock);
+            }
+            l1Messenger = MessengerLike(readConfigAddress("l1Messenger"));
+            l2Messenger = MessengerLike(readConfigAddress("l2Messenger"));
+            vm.makePersistent(address(this));
+            vm.recordLogs();
+        }
     }
 
     function relayFromHost(bool switchToGuest) external override {
@@ -110,5 +123,5 @@ contract OptimismDomain is BridgedDomain {
             selectFork();
         }
     }
-    
+
 }
