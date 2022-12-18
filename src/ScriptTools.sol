@@ -54,8 +54,17 @@ library ScriptTools {
      *      Note waiting on forge updates to support better exporting of contracts.
      *      For now we just log to stdout.
      */
-    function logContract(string memory name, address addr) internal view {
+    function exportContract(string memory name, address addr) internal view {
         console.log(string(abi.encodePacked("DSSTEST_EXPORT_", name, "=", vm.toString(addr))));
+    }
+
+    /**
+     * @dev Used to import contracts from previous exports.
+     *      Note waiting on forge updates to support better exporting of contracts.
+     *      For now we assume parent script has put environment variables into scope.
+     */
+    function importContract(string memory name) internal view returns (address addr) {
+        return vm.envAddress(string(abi.encodePacked("DSSTEST_EXPORT_", name)));
     }
 
     // Read config variable, but allow for an environment variable override
