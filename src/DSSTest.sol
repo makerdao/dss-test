@@ -17,6 +17,7 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Test.sol";
 
+import { ScriptTools } from "./ScriptTools.sol";
 import {
     GodMode,
     MCD,
@@ -54,10 +55,8 @@ abstract contract DSSTest is Test {
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
 
-    function readInput(string memory input) internal returns (string memory) {
-        string memory root = vm.projectRoot();
-        string memory chainInputFolder = string.concat("/script/input/", vm.toString(block.chainid), "/");
-        return vm.readFile(string.concat(root, chainInputFolder, string.concat(input, ".json")));
+    function readInput(string memory input) internal view returns (string memory) {
+        return ScriptTools.readInput(input);
     }
 
     function assertRevert(address target, bytes memory data, string memory expectedMessage) internal {

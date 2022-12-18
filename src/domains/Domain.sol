@@ -41,23 +41,23 @@ contract Domain {
         vm.makePersistent(address(this));
     }
 
-    function readConfigString(string memory key) public returns (string memory) {
+    function readConfigString(string memory key) public view returns (string memory) {
         return config.readString(string.concat(".domains.", name, ".", key));
     }
 
-    function readConfigAddress(string memory key) public returns (address) {
+    function readConfigAddress(string memory key) public view returns (address) {
         return config.readAddress(string.concat(".domains.", name, ".", key));
     }
 
-    function readConfigUint(string memory key) public returns (uint256) {
+    function readConfigUint(string memory key) public view returns (uint256) {
         return config.readUint(string.concat(".domains.", name, ".", key));
     }
 
-    function readConfigInt(string memory key) public returns (int256) {
+    function readConfigInt(string memory key) public view returns (int256) {
         return config.readInt(string.concat(".domains.", name, ".", key));
     }
 
-    function readConfigBytes32(string memory key) public returns (bytes32) {
+    function readConfigBytes32(string memory key) public view returns (bytes32) {
         return config.readBytes32(string.concat(".domains.", name, ".", key));
     }
 
@@ -69,7 +69,7 @@ contract Domain {
         return out;
     }
 
-    function readConfigBytes32FromString(string memory key) public returns (bytes32) {
+    function readConfigBytes32FromString(string memory key) public view returns (bytes32) {
         return bytesToBytes32(bytes(readConfigString(key)));
     }
 
