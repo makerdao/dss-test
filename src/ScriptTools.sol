@@ -20,6 +20,8 @@ import { VmSafe } from "forge-std/Vm.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { console } from "forge-std/console.sol";
 
+import { WardsAbstract } from "dss-interfaces/Interfaces.sol";
+
 /** 
  * @title Script Tools
  * @dev Contains opinionated tools used in scripts.
@@ -65,6 +67,13 @@ library ScriptTools {
      */
     function importContract(string memory name) internal view returns (address addr) {
         return vm.envAddress(string(abi.encodePacked("DSSTEST_EXPORT_", name)));
+    }
+
+    function switchOwner(address base, address deployer, address newOwner) internal {
+        if (deployer == newOwner) return;
+        require(WardsAbstract(base).wards(deployer) == 1, "deployer-not-authed");
+        WardsAbstract(base).rely(newOwner);
+        WardsAbstract(base).deny(deployer);
     }
 
     // Read config variable, but allow for an environment variable override
