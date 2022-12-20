@@ -18,7 +18,6 @@ pragma solidity >=0.8.0;
 
 import { VmSafe } from "forge-std/Vm.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { console } from "forge-std/console.sol";
 
 import { WardsAbstract } from "dss-interfaces/Interfaces.sol";
 
@@ -53,20 +52,21 @@ library ScriptTools {
 
     /**
      * @dev Used to export important contracts to higher level deploy scripts.
-     *      Note waiting on forge updates to support better exporting of contracts.
-     *      For now we just log to stdout.
+     *      Note waiting on Foundry to have better primatives, but roll our own for now.
+     *      Writes contract to broadcast/contract-exports.env
      */
-    function exportContract(string memory name, address addr) internal view {
-        console.log(string(abi.encodePacked("DSSTEST_EXPORT_", name, "=", vm.toString(addr))));
+    function exportContract(string memory name, address addr) internal {
+        vm.writeLine(string(abi.encodePacked(vm.projectRoot(), "/broadcast/contract-exports.env")), string(abi.encodePacked("export FOUNDRY_EXPORT_", name, "=", vm.toString(addr))));
     }
 
     /**
      * @dev Used to import contracts from previous exports.
-     *      Note waiting on forge updates to support better exporting of contracts.
-     *      For now we assume parent script has put environment variables into scope.
+     *      Note waiting on Foundry to have better primatives, but roll our own for now.
+     *      Assume parent script has put environment variables into scope.
+     *      Run `source broadcast/contract-exports.env` in parent script to get environment variables.
      */
     function importContract(string memory name) internal view returns (address addr) {
-        return vm.envAddress(string(abi.encodePacked("DSSTEST_EXPORT_", name)));
+        return vm.envAddress(string(abi.encodePacked("FOUNDRY_EXPORT_", name)));
     }
 
     function switchOwner(address base, address deployer, address newOwner) internal {
