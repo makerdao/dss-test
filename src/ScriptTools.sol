@@ -38,10 +38,12 @@ library ScriptTools {
         return vm.readFile(string(abi.encodePacked(root, chainInputFolder, input, ".json")));
     }
 
-    /// @dev It's common to define strings as bytes32 (such as for ilks)
+    /**
+     * @notice It's common to define strings as bytes32 (such as for ilks)
+     */
     function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
-        bytes memory tempEmptyStringTest = bytes(source);
-        if (tempEmptyStringTest.length == 0) {
+        bytes memory emptyStringTest = bytes(source);
+        if (emptyStringTest.length == 0) {
             return 0x0;
         }
 
@@ -51,19 +53,37 @@ library ScriptTools {
     }
 
     /**
-     * @dev Used to export important contracts to higher level deploy scripts.
-     *      Note waiting on Foundry to have better primatives, but roll our own for now.
-     *      Writes contract to out/contract-exports.env
+     * @notice Convert an ilk to a chainlog key by replacing all dashes with underscores.
+     *         Ex) Convert "ETH-A" to "ETH_A"
+     */
+    function ilkToChainlogFormat(bytes32 ilk) internal pure returns (string memory) {
+        uint256 len = 0;
+        for (; len < 32; len++) {
+            if (uint8(ilk[len]) == 0x00) break;
+        }
+        bytes memory result = new bytes(len);
+        for (uint256 i = 0; i < len; i++) {
+            uint8 b = uint8(ilk[i]);
+            if (b == 0x2d) result[i] = bytes1(0x5f);
+            else result[i] = bytes1(b);
+        }
+        return string(result);
+    }
+
+    /**
+     * @notice Used to export important contracts to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primatives, but roll our own for now.
+     *         Writes contract to out/contract-exports.env
      */
     function exportContract(string memory name, address addr) internal {
         vm.writeLine(string(abi.encodePacked(vm.projectRoot(), "/out/contract-exports.env")), string(abi.encodePacked("export FOUNDRY_EXPORT_", name, "=", vm.toString(addr))));
     }
 
     /**
-     * @dev Used to import contracts from previous exports.
-     *      Note waiting on Foundry to have better primatives, but roll our own for now.
-     *      Assume parent script has put environment variables into scope.
-     *      Run `source out/contract-exports.env` in parent script to get environment variables.
+     * @notice Used to import contracts from previous exports.
+     *         Note waiting on Foundry to have better primatives, but roll our own for now.
+     *         Assume parent script has put environment variables into scope.
+     *         Run `source out/contract-exports.env` in parent script to get environment variables.
      */
     function importContract(string memory name) internal view returns (address addr) {
         return vm.envAddress(string(abi.encodePacked("FOUNDRY_EXPORT_", name)));
