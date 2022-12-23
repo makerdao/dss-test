@@ -40,4 +40,12 @@ contract ScriptToolTest is DSSTest {
         assertEq(ScriptTools.ilkToChainlogFormat(bytes32("DIRECT-AAVEV2-DAI")), "DIRECT_AAVEV2_DAI");
     }
 
+    function test_eq() public {
+        assertTrue(ScriptTools.eq("A", "A"));
+    }
+
+    function test_not_eq() public {
+        assertTrue(!ScriptTools.eq("A", "B"));
+    }
+
 }

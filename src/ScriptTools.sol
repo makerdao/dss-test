@@ -70,6 +70,10 @@ library ScriptTools {
         return string(result);
     }
 
+    function eq(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(bytes(a)) == keccak256(bytes(b));
+    }
+
     /**
      * @notice Used to export important contracts to higher level deploy scripts.
      *         Note waiting on Foundry to have better primatives, but roll our own for now.
