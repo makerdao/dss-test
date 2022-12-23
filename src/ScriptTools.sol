@@ -77,17 +77,17 @@ library ScriptTools {
     /**
      * @notice Used to export important contracts to higher level deploy scripts.
      *         Note waiting on Foundry to have better primatives, but roll our own for now.
-     *         Writes contract to out/contract-exports.env
+     *         Writes contract to contract-exports.env
      */
     function exportContract(string memory name, address addr) internal {
-        vm.writeLine(string(abi.encodePacked(vm.projectRoot(), "/out/contract-exports.env")), string(abi.encodePacked("export FOUNDRY_EXPORT_", name, "=", vm.toString(addr))));
+        vm.writeLine(string(abi.encodePacked(vm.projectRoot(), "/contract-exports.env")), string(abi.encodePacked("export FOUNDRY_EXPORT_", name, "=", vm.toString(addr))));
     }
 
     /**
      * @notice Used to import contracts from previous exports.
      *         Note waiting on Foundry to have better primatives, but roll our own for now.
      *         Assume parent script has put environment variables into scope.
-     *         Run `source out/contract-exports.env` in parent script to get environment variables.
+     *         Run `source contract-exports.env` in parent script to get environment variables.
      */
     function importContract(string memory name) internal view returns (address addr) {
         return vm.envAddress(string(abi.encodePacked("FOUNDRY_EXPORT_", name)));
