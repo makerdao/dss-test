@@ -54,7 +54,6 @@ contract IntegrationTest is DSSTest {
         config = readInput("integration");
 
         rootDomain = new RootDomain(config, "root");
-        rootDomain.loadFork(vm.activeFork());
         rootDomain.loadDssFromChainlog();
         dss = rootDomain.dss(); // For ease of access
         ethA = dss.getIlk("ETH", "A");
@@ -64,9 +63,7 @@ contract IntegrationTest is DSSTest {
         user3 = dss.newUser();
 
         optimism = new OptimismDomain(config, "optimism", rootDomain);
-        optimism.loadConfig();
         arbitrum = new ArbitrumDomain(config, "arbitrum", rootDomain);
-        arbitrum.loadConfig();
     }
 
     function test_give_tokens() public {

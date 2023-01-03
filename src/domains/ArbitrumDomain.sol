@@ -55,9 +55,7 @@ contract ArbitrumDomain is BridgedDomain {
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
-    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {}
-
-    function loadConfig() public override {
+    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
         string memory rpcEnv = readConfigString("rpc");
         string memory rpc = vm.envString(rpcEnv);
         if (bytes(rpc).length > 0) {

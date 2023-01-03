@@ -36,9 +36,7 @@ contract OptimismDomain is BridgedDomain {
     bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {}
-
-    function loadConfig() public override {
+    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
         string memory rpcEnv = readConfigString("rpc");
         string memory rpc = vm.envString(rpcEnv);
         if (bytes(rpc).length > 0) {

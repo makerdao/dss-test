@@ -79,26 +79,6 @@ contract Domain {
         return _dss;
     }
 
-    function loadFork(uint256 _forkId) public {
-        forkId = _forkId;
-        live = 1;
-        vm.makePersistent(address(this));
-    }
-
-    function loadConfig() public virtual {
-        string memory rpcEnv = readConfigString("rpc");
-        string memory rpc = vm.envString(rpcEnv);
-        if (bytes(rpc).length > 0) {
-            live = 1;
-            forkId = vm.createFork(rpc);
-            uint256 domainBlock = vm.envUint(readConfigString("block"));
-            if (domainBlock > 0) {
-                rollFork(domainBlock);
-            }
-            vm.makePersistent(address(this));
-        }
-    }
-
     function selectFork() public {
         vm.selectFork(forkId);
     }

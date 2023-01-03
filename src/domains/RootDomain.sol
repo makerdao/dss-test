@@ -20,6 +20,10 @@ import {Domain} from "./Domain.sol";
 contract RootDomain is Domain {
 
     constructor(string memory _config, string memory _name) Domain(_config, _name) {
+        // Root should always be loaded from ETH_RPC_URL fork
+        forkId = 0;
+        live = 1;
+        vm.makePersistent(address(this));
     }
 
 }
