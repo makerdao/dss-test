@@ -39,6 +39,18 @@ library ScriptTools {
     }
 
     /**
+     * @notice Use standard environment variables to load config.
+     * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
+     *      Falls back to FOUNDRY_SCRIPT_CONFIG for a standard file definition.
+     */
+    function loadConfig() internal returns (string memory config) {
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
+        if (eq(config, "")) {
+            config = readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG"));
+        }
+    }
+
+    /**
      * @notice It's common to define strings as bytes32 (such as for ilks)
      */
     function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
