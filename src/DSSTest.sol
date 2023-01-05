@@ -1,5 +1,5 @@
+// SPDX-FileCopyrightText: © 2022 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2021 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -55,8 +55,23 @@ abstract contract DSSTest is Test {
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
 
-    function readInput(string memory input) internal view returns (string memory) {
+    function readInput(string memory input) internal returns (string memory) {
         return ScriptTools.readInput(input);
+    }
+
+    /**
+     * @notice Takes the root chain into account when finding relative chains.
+     *         Ex. if the root chain id is 5 then "optimism" will convert to "optimism_goerli", etc
+     */
+    function getRelativeChain(string memory name) internal returns (StdChains.Chain memory) {
+        if (ScriptTools.getRootChainId() == 5) {
+            // Do Goerli translations
+            if (ScriptTools.eq(name, "mainnet")) name = "goerli";
+            else if (ScriptTools.eq(name, "optimism")) name = "optimism_goerli";
+            else if (ScriptTools.eq(name, "arbitrum_one")) name = "arbitrum_one_goerli";
+        }
+
+        return getChain(name);
     }
 
     function assertRevert(address target, bytes memory data, string memory expectedMessage) internal {

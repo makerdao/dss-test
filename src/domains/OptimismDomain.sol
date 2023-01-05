@@ -1,5 +1,5 @@
+// SPDX-FileCopyrightText: © 2022 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2022 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,7 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Vm.sol";
 
-import { Domain, BridgedDomain } from "./BridgedDomain.sol";
+import { Domain, BridgedDomain, StdChains } from "./BridgedDomain.sol";
 
 interface MessengerLike {
     function relayMessage(
@@ -36,7 +36,7 @@ contract OptimismDomain is BridgedDomain {
     bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
 
-    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
+    constructor(string memory _config, StdChains.Chain memory _chain, Domain _hostDomain) Domain(_config, _chain) BridgedDomain(_hostDomain) {
         l1Messenger = MessengerLike(readConfigAddress("l1Messenger"));
         l2Messenger = MessengerLike(readConfigAddress("l2Messenger"));
         vm.recordLogs();
