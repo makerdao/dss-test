@@ -32,7 +32,7 @@ library ScriptTools {
     string internal constant DELIMITER_OVERRIDE = "DSSTEST_ARRAY_DELIMITER";
 
     function getRootChainId() internal returns (uint256 chaindId) {
-        chaindId vm.envOr("FOUNDRY_ROOT_CHAINID", uint256(1));
+        chaindId = vm.envOr("FOUNDRY_ROOT_CHAINID", uint256(1));
         if (chaindId == 0) chaindId = 1;
     }
 
