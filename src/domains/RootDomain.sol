@@ -15,7 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import { Domain, StdChains } from "./Domain.sol";
+import { Domain } from "./Domain.sol";
+import { StdChains } from "forge-std/StdChains.sol";
 
 contract RootDomain is Domain {
 

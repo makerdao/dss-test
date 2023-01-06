@@ -17,7 +17,8 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Vm.sol";
 
-import { Domain, BridgedDomain, StdChains } from "./BridgedDomain.sol";
+import { Domain, BridgedDomain } from "./BridgedDomain.sol";
+import { StdChains } from "forge-std/StdChains.sol";
 
 interface MessengerLike {
     function relayMessage(
