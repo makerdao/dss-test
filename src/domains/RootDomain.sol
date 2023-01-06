@@ -1,5 +1,5 @@
+// SPDX-FileCopyrightText: © 2022 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2022 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,11 +15,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import {Domain} from "./Domain.sol";
+import { Domain } from "./Domain.sol";
+import { StdChains } from "forge-std/StdChains.sol";
 
 contract RootDomain is Domain {
 
-    constructor(string memory _config, string memory _name) Domain(_config, _name) {
+    constructor(string memory _config, StdChains.Chain memory _chain) Domain(_config, _chain) {
     }
     
 }

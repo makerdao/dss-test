@@ -1,5 +1,5 @@
+// SPDX-FileCopyrightText: © 2022 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2022 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,6 +18,7 @@ pragma solidity >=0.8.0;
 import "forge-std/Vm.sol";
 
 import { Domain, BridgedDomain } from "./BridgedDomain.sol";
+import { StdChains } from "forge-std/StdChains.sol";
 
 interface InboxLike {
     function bridge() external view returns (address);
@@ -55,7 +56,7 @@ contract ArbitrumDomain is BridgedDomain {
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
 
-    constructor(string memory _config, string memory _name, Domain _hostDomain) Domain(_config, _name) BridgedDomain(_hostDomain) {
+    constructor(string memory _config, StdChains.Chain memory _chain, Domain _hostDomain) Domain(_config, _chain) BridgedDomain(_hostDomain) {
         inbox = InboxLike(readConfigAddress("inbox"));
         arbSys = readConfigAddress("arbSys");
         bridge = BridgeLike(inbox.bridge());

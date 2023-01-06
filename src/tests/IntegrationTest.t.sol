@@ -25,12 +25,16 @@ import "../domains/ArbitrumDomain.sol";
 interface OptimismDaiBridgeLike {
     function depositERC20To(address, address, address, uint256, uint32, bytes calldata) external;
     function withdrawTo(address, address, uint256, uint32, bytes calldata) external;
+    function l2Token() external view returns (address);
+    function l2DAITokenBridge() external view returns (address);
 }
 
 interface ArbitrumDaiBridgeLike {
     function l1Dai() external view returns (address);
     function outboundTransfer(address, address, uint256, uint256, uint256, bytes calldata) external payable;
     function outboundTransfer(address, address, uint256, bytes calldata) external;
+    function l2Dai() external view returns (address);
+    function l2Counterpart() external view returns (address);
 }
 
 contract IntegrationTest is DSSTest {
@@ -53,7 +57,7 @@ contract IntegrationTest is DSSTest {
     function setUp() public virtual {
         config = readInput("integration");
 
-        rootDomain = new RootDomain(config, "root");
+        rootDomain = new RootDomain(config, getRelativeChain("mainnet"));
         rootDomain.selectFork();
         rootDomain.loadDssFromChainlog();
         dss = rootDomain.dss(); // For ease of access
@@ -63,8 +67,8 @@ contract IntegrationTest is DSSTest {
         user2 = dss.newUser();
         user3 = dss.newUser();
 
-        optimism = new OptimismDomain(config, "optimism", rootDomain);
-        arbitrum = new ArbitrumDomain(config, "arbitrum", rootDomain);
+        optimism = new OptimismDomain(config, getRelativeChain("optimism"), rootDomain);
+        arbitrum = new ArbitrumDomain(config, getRelativeChain("arbitrum_one"), rootDomain);
     }
 
     function test_give_tokens() public {
@@ -97,10 +101,10 @@ contract IntegrationTest is DSSTest {
     }
 
     function test_optimism_relay() public {
-        DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
-        OptimismDaiBridgeLike l2Bridge = OptimismDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
-        dss.dai.setBalance(address(this), 100 ether);
         OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(dss.chainlog.getAddress("OPTIMISM_DAI_BRIDGE"));
+        DaiAbstract l2Dai = DaiAbstract(bridge.l2Token());
+        OptimismDaiBridgeLike l2Bridge = OptimismDaiBridgeLike(bridge.l2DAITokenBridge());
+        dss.dai.setBalance(address(this), 100 ether);
 
         // Transfer some DAI across the Optimism bridge
         dss.dai.approve(address(bridge), 100 ether);
@@ -144,11 +148,11 @@ contract IntegrationTest is DSSTest {
     }
 
     function test_arbitrum_relay() public {
-        DaiAbstract l1Dai = dss.dai;
-        DaiAbstract l2Dai = DaiAbstract(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
-        ArbitrumDaiBridgeLike l2Bridge = ArbitrumDaiBridgeLike(0x467194771dAe2967Aef3ECbEDD3Bf9a310C76C65);
-        l1Dai.setBalance(address(this), 100 ether);
         ArbitrumDaiBridgeLike bridge = ArbitrumDaiBridgeLike(dss.chainlog.getAddress("ARBITRUM_DAI_BRIDGE"));
+        DaiAbstract l1Dai = dss.dai;
+        DaiAbstract l2Dai = DaiAbstract(bridge.l2Dai());
+        ArbitrumDaiBridgeLike l2Bridge = ArbitrumDaiBridgeLike(bridge.l2Counterpart());
+        l1Dai.setBalance(address(this), 100 ether);
 
         // Transfer some DAI across the Arbitrum bridge
         l1Dai.approve(address(bridge), 100 ether);
