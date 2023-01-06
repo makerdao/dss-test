@@ -31,8 +31,9 @@ library ScriptTools {
     string internal constant DEFAULT_DELIMITER = ",";
     string internal constant DELIMITER_OVERRIDE = "DSSTEST_ARRAY_DELIMITER";
 
-    function getRootChainId() internal returns (uint256) {
-        return vm.envOr("FOUNDRY_ROOT_CHAINID", uint256(1));
+    function getRootChainId() internal returns (uint256 chaindId) {
+        chaindId vm.envOr("FOUNDRY_ROOT_CHAINID", uint256(1));
+        if (chaindId == 0) chaindId = 1;
     }
 
     function readInput(string memory input) internal returns (string memory) {
