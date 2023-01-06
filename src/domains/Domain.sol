@@ -85,6 +85,7 @@ contract Domain {
     
     function selectFork() public {
         vm.selectFork(forkId);
+        require(block.chainid == _details.chainId, string(abi.encodePacked(_details.chainAlias, " is pointing to the wrong RPC endpoint '", _details.rpcUrl, "'")));
     }
     
     function rollFork(uint256 blocknum) public {
