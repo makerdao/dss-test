@@ -1,14 +1,14 @@
 {
     "domains": {
-        "mainnet": {
+        "goerli": {
             "chainlog": "0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F"
         },
-        "optimism": {
-            "l1Messenger": "0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1",
+        "optimism_goerli": {
+            "l1Messenger": "0x5086d1eEF304eb5284A0f6720f79403b4e9bE294",
             "l2Messenger": "0x4200000000000000000000000000000000000007"
         },
-        "arbitrum_one": {
-            "inbox": "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
+        "arbitrum_one_goerli": {
+            "inbox": "0x6BEbC4925716945D46F0Ec336D5C2564F419682C",
             "arbSys": "0x0000000000000000000000000000000000000064"
         }
     }

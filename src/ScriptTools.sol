@@ -1,6 +1,5 @@
+// SPDX-FileCopyrightText: © 2022 Dai Foundation <www.daifoundation.org>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2017 DappHub, LLC
-// Copyright (C) 2022 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -32,9 +31,13 @@ library ScriptTools {
     string internal constant DEFAULT_DELIMITER = ",";
     string internal constant DELIMITER_OVERRIDE = "DSSTEST_ARRAY_DELIMITER";
 
-    function readInput(string memory input) internal view returns (string memory) {
+    function getRootChainId() internal returns (uint256) {
+        return vm.envOr("FOUNDRY_ROOT_CHAINID", uint256(1));
+    }
+
+    function readInput(string memory input) internal returns (string memory) {
         string memory root = vm.projectRoot();
-        string memory chainInputFolder = string(abi.encodePacked("/script/input/", vm.toString(block.chainid), "/"));
+        string memory chainInputFolder = string(abi.encodePacked("/script/input/", vm.toString(getRootChainId()), "/"));
         return vm.readFile(string(abi.encodePacked(root, chainInputFolder, input, ".json")));
     }
     
