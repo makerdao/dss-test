@@ -45,11 +45,12 @@ library ScriptTools {
      * @notice Use standard environment variables to load config.
      * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
      *      Falls back to FOUNDRY_SCRIPT_CONFIG for a standard file definition.
+     *      Finally will fall back to the given string.
      */
-    function loadConfig() internal returns (string memory config) {
+    function loadConfig(string memory name) internal returns (string memory config) {
         config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
         if (eq(config, "")) {
-            config = readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG"));
+            config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name));
         }
     }
 
