@@ -48,10 +48,7 @@ library ScriptTools {
      *      Finally will fall back to the given string.
      */
     function loadConfig(string memory name) internal returns (string memory config) {
-        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
-        if (eq(config, "")) {
-            config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name));
-        }
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name)));
     }
 
     /**
