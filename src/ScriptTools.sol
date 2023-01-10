@@ -40,6 +40,16 @@ library ScriptTools {
         string memory chainInputFolder = string(abi.encodePacked("/script/input/", vm.toString(getRootChainId()), "/"));
         return vm.readFile(string(abi.encodePacked(root, chainInputFolder, input, ".json")));
     }
+    
+    /**
+     * @notice Use standard environment variables to load config.
+     * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
+     *      Falls back to FOUNDRY_SCRIPT_CONFIG for a standard file definition.
+     *      Finally will fall back to the given string.
+     */
+    function loadConfig(string memory name) internal returns (string memory config) {
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name)));
+    }
 
     /**
      * @notice It's common to define strings as bytes32 (such as for ilks)
