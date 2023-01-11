@@ -24,7 +24,7 @@ import {
 import {Vm} from "forge-std/Vm.sol";
 
 library GodMode {
-    
+
     address constant public VM_ADDR = address(bytes20(uint160(uint256(keccak256('hevm cheat code')))));
 
     function vm() internal pure returns (Vm) {
@@ -89,26 +89,53 @@ library GodMode {
         if (DSTokenAbstract(token).balanceOf(who) == amount) return;
 
         for (uint256 i = 0; i < 200; i++) {
-            // Scan the storage for the balance storage slot
-            bytes32 prevValue = vm().load(
-                token,
-                keccak256(abi.encode(who, uint256(i)))
-            );
-            vm().store(
-                token,
-                keccak256(abi.encode(who, uint256(i))),
-                bytes32(amount)
-            );
-            if (DSTokenAbstract(token).balanceOf(who) == amount) {
-                // Found it
-                return;
-            } else {
-                // Keep going after restoring the original value
+            // Scan the storage for the solidity-style balance storage slot
+            {
+                bytes32 prevValue = vm().load(
+                    token,
+                    keccak256(abi.encode(who, uint256(i)))
+                );
                 vm().store(
                     token,
                     keccak256(abi.encode(who, uint256(i))),
-                    prevValue
+                    bytes32(amount)
                 );
+                if (DSTokenAbstract(token).balanceOf(who) == amount) {
+                    // Found it
+                    return;
+                } else {
+                    // Keep going after restoring the original value
+                    vm().store(
+                        token,
+                        keccak256(abi.encode(who, uint256(i))),
+                        prevValue
+                    );
+                }
+            }
+
+            // Vyper-style storage layout for maps
+            {
+                bytes32 prevValue = vm().load(
+                    token,
+                    keccak256(abi.encode(uint256(i), who))
+                );
+
+                vm().store(
+                    token,
+                    keccak256(abi.encode(uint256(i), who)),
+                    bytes32(amount)
+                );
+                if (DSTokenAbstract(token).balanceOf(who) == amount) {
+                    // Found it
+                    return;
+                } else {
+                    // Keep going after restoring the original value
+                    vm().store(
+                        token,
+                        keccak256(abi.encode(uint256(i), who)),
+                        prevValue
+                    );
+                }
             }
         }
 
