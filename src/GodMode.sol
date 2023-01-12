@@ -82,7 +82,6 @@ library GodMode {
     }
 
     /// @dev Sets the balance for `who` to `amount` for `token`.
-    /// Note this only works for contracts compiled under Solidity and Vyper.
     function setBalance(address token, address who, uint256 amount) internal {
         // Edge case - balance is already set for some reason
         if (DSTokenAbstract(token).balanceOf(who) == amount) return;
@@ -143,15 +142,11 @@ library GodMode {
     }
 
     /// @dev Sets the balance for `who` to `amount` for `token`.
-    /// Note this only works for contracts compiled under Solidity. Vyper contracts use a different storage structure for maps.
-    /// See https://twitter.com/msolomon44/status/1420137730009300992?t=WO2052xM3AzUCL7o7Pfkow&s=19
     function setBalance(DSTokenAbstract token, address who, uint256 amount) internal {
         setBalance(address(token), who, amount);
     }
 
     /// @dev Sets the balance for `who` to `amount` for `token`.
-    /// Note this only works for contracts compiled under Solidity. Vyper contracts use a different storage structure for maps.
-    /// See https://twitter.com/msolomon44/status/1420137730009300992?t=WO2052xM3AzUCL7o7Pfkow&s=19
     function setBalance(DaiAbstract token, address who, uint256 amount) internal {
         setBalance(address(token), who, amount);
     }
