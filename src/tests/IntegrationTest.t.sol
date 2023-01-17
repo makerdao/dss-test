@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import "dss-interfaces/Interfaces.sol";
 
-import "../DSSTest.sol";
+import "../DssTest.sol";
 import "../domains/RootDomain.sol";
 import "../domains/OptimismDomain.sol";
 import "../domains/ArbitrumDomain.sol";
@@ -37,7 +37,7 @@ interface ArbitrumDaiBridgeLike {
     function l2Counterpart() external view returns (address);
 }
 
-contract IntegrationTest is DSSTest {
+contract IntegrationTest is DssTest {
 
     using GodMode for *;
     using MCD for DssInstance;

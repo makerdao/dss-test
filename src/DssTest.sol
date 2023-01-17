@@ -37,7 +37,7 @@ interface FileLike is AuthLike {
     function file(bytes32, address) external;
 }
 
-abstract contract DSSTest is Test {
+abstract contract DssTest is Test {
 
     uint256 constant WAD = 10 ** 18;
     uint256 constant RAY = 10 ** 27;

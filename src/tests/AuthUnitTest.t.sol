@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import "../DSSTest.sol";
+import "../DssTest.sol";
 
 contract ValidAuthContract {
     event Rely(address indexed usr);
@@ -90,7 +90,7 @@ contract InvalidAuthContractDeny3 {
     constructor() { wards[msg.sender] = 1; emit Rely(msg.sender); }
 }
 
-contract AuthUnitTest is DSSTest {
+contract AuthUnitTest is DssTest {
 
     function test_auth_valid() public {
         checkAuth(address(new ValidAuthContract()), "AuthContract");
