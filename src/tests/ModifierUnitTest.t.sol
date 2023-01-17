@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import "../DSSTest.sol";
+import "../DssTest.sol";
 
 contract SomeContract {
     modifier myModifier { if (1 != 0) revert("SomeContract/bad-state"); _; }    // Conditional gets rid of code unreachable warning
@@ -23,7 +23,7 @@ contract SomeContract {
     function withoutModifier(uint256 arg) external {}
 }
 
-contract ModifierUnitTest is DSSTest {
+contract ModifierUnitTest is DssTest {
 
     function test_modifier() public {
         checkModifier(address(new SomeContract()), "SomeContract/bad-state", [abi.encodeWithSelector(SomeContract.withModifier.selector)]);

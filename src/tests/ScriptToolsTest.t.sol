@@ -15,10 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import "../DSSTest.sol";
+import "../DssTest.sol";
 import "../ScriptTools.sol";
 
-contract ScriptToolTest is DSSTest {
+contract ScriptToolTest is DssTest {
 
     function test_stringToBytes32() public {
         assertEq(ScriptTools.stringToBytes32("test"),  bytes32("test"));

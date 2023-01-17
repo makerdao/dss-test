@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
-import "../DSSTest.sol";
+import "../DssTest.sol";
 
 contract ValidFileContract {
     mapping (address => uint256) public wards;
@@ -132,7 +132,7 @@ contract InvalidFileContractMissingAuth {
     }
 }
 
-contract FileUnitTest is DSSTest {
+contract FileUnitTest is DssTest {
 
     function test_file_uint_valid() public {
         checkFileUint(address(new ValidFileContract()), "FileContract", ["someData"]);
