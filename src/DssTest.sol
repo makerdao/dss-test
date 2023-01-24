@@ -55,7 +55,7 @@ abstract contract DssTest is Test {
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
 
-    function readInput(string memory input) internal returns (string memory) {
+    function readInput(string memory input) internal view returns (string memory) {
         return ScriptTools.readInput(input);
     }
 
