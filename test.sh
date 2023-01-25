@@ -16,6 +16,8 @@ set -e
 [[ "$FOUNDRY_ROOT_CHAINID" == "1" ]] && echo "Running tests on Mainnet"
 [[ "$FOUNDRY_ROOT_CHAINID" == "5" ]] && echo "Running tests on Goerli"
 
+mkdir -p "script/output/$FOUNDRY_ROOT_CHAINID"
+
 export FOUNDRY_ROOT_CHAINID
 if [[ -z "$1" ]]; then
     forge test

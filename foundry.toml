@@ -4,6 +4,7 @@ out = 'out'
 libs = ['lib']
 fs_permissions = [
     { access = "read", path = "./script/input/"},
+    { access = "read-write", path = "./script/output/"},
     { access = "read", path = "./out/ArbitrumDomain.sol/ArbSysOverride.json"}
 ]
 

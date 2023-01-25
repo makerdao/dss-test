@@ -20,6 +20,8 @@ import "../ScriptTools.sol";
 
 contract ScriptToolTest is DssTest {
 
+    string loadedExports;
+
     function test_stringToBytes32() public {
         assertEq(ScriptTools.stringToBytes32("test"),  bytes32("test"));
     }
@@ -46,6 +48,17 @@ contract ScriptToolTest is DssTest {
 
     function test_not_eq() public {
         assertTrue(!ScriptTools.eq("A", "B"));
+    }
+
+    function test_export_contracts() public {
+        // Export some contracts and write to output
+        ScriptTools.exportContract("myExports", "label1", address(1));
+        ScriptTools.exportContract("myExports", "label2", address(2));
+
+        // Simulate a subsequent run loading a previously written file (use latest deploy)
+        loadedExports = ScriptTools.readOutput("myExports");
+        assertEq(stdJson.readAddress(loadedExports, "label1"), address(1));
+        assertEq(stdJson.readAddress(loadedExports, "label2"), address(2));
     }
 
 }
