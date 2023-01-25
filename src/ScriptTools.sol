@@ -110,6 +110,9 @@ library ScriptTools {
     /**
      * @notice Used to export important contracts to higher level deploy scripts.
      *         Note waiting on Foundry to have better primatives, but roll our own for now.
+     * @param name The name to give the json file.
+     * @param label The label of the address.
+     * @param addr The address to export.
      */
     function exportContract(string memory name, string memory label, address addr) internal {
         string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
