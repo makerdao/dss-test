@@ -111,11 +111,8 @@ library ScriptTools {
      * @notice Used to export important contracts to higher level deploy scripts.
      *         Note waiting on Foundry to have better primatives, but roll our own for now.
      */
-    function exportContract(string memory json, string memory name, address addr) internal returns (string memory) {
-        return vm.serializeAddress(EXPORT_JSON_KEY, name, addr);
-    }
-
-    function writeExports(string memory json, string memory name) internal {
+    function exportContract(string memory name, string memory label, address addr) internal {
+        string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
         string memory root = vm.projectRoot();
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
         vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
