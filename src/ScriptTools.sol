@@ -30,15 +30,22 @@ library ScriptTools {
     
     string internal constant DEFAULT_DELIMITER = ",";
     string internal constant DELIMITER_OVERRIDE = "DSSTEST_ARRAY_DELIMITER";
+    string internal constant EXPORT_JSON_KEY = "EXPORTS";
 
     function getRootChainId() internal view returns (uint256) {
         return vm.envUint("FOUNDRY_ROOT_CHAINID");
     }
 
-    function readInput(string memory input) internal view returns (string memory) {
+    function readInput(string memory name) internal view returns (string memory) {
         string memory root = vm.projectRoot();
         string memory chainInputFolder = string(abi.encodePacked("/script/input/", vm.toString(getRootChainId()), "/"));
-        return vm.readFile(string(abi.encodePacked(root, chainInputFolder, input, ".json")));
+        return vm.readFile(string(abi.encodePacked(root, chainInputFolder, name, ".json")));
+    }
+
+    function readOutput(string memory name) internal view returns (string memory) {
+        string memory root = vm.projectRoot();
+        string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
+        return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, ".json")));
     }
     
     /**
@@ -103,20 +110,18 @@ library ScriptTools {
     /**
      * @notice Used to export important contracts to higher level deploy scripts.
      *         Note waiting on Foundry to have better primatives, but roll our own for now.
-     *         Writes contract to out/contract-exports.env
      */
-    function exportContract(string memory name, address addr) internal {
-        vm.writeLine(string(abi.encodePacked(vm.projectRoot(), "/out/contract-exports.env")), string(abi.encodePacked("export FOUNDRY_EXPORT_", name, "=", vm.toString(addr))));
+    function exportContract(string memory json, string memory name, address addr) internal returns (string memory) {
+        return vm.serializeAddress(EXPORT_JSON_KEY, name, addr);
     }
 
-    /**
-     * @notice Used to import contracts from previous exports.
-     *         Note waiting on Foundry to have better primatives, but roll our own for now.
-     *         Assume parent script has put environment variables into scope.
-     *         Run `source out/contract-exports.env` in parent script to get environment variables.
-     */
-    function importContract(string memory name) internal view returns (address addr) {
-        return vm.envAddress(string(abi.encodePacked("FOUNDRY_EXPORT_", name)));
+    function writeExports(string memory json, string memory name) internal {
+        string memory root = vm.projectRoot();
+        string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
+        vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
+        if (!vm.envOr("FOUNDRY_EXPORTS_NO_OVERWRITE_LATEST", false)) {
+            vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
+        }
     }
 
     function switchOwner(address base, address deployer, address newOwner) internal {

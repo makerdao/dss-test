@@ -55,10 +55,6 @@ abstract contract DssTest is Test {
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
 
-    function readInput(string memory input) internal view returns (string memory) {
-        return ScriptTools.readInput(input);
-    }
-
     /**
      * @notice Takes the root chain into account when finding relative chains.
      *         Ex. if the root chain id is 5 then "optimism" will convert to "optimism_goerli", etc

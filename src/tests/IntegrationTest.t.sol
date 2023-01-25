@@ -55,7 +55,7 @@ contract IntegrationTest is DssTest {
     ArbitrumDomain arbitrum;
 
     function setUp() public virtual {
-        config = readInput("integration");
+        config = ScriptTools.readInput("integration");
 
         rootDomain = new RootDomain(config, getRelativeChain("mainnet"));
         rootDomain.selectFork();

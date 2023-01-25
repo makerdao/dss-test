@@ -1,2 +1,3 @@
 cache/
 out/
+script/output/**/*.json
