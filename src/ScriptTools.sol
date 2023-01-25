@@ -42,10 +42,16 @@ library ScriptTools {
         return vm.readFile(string(abi.encodePacked(root, chainInputFolder, name, ".json")));
     }
 
+    function readOutput(string memory name, uint256 timestamp) internal view returns (string memory) {
+        string memory root = vm.projectRoot();
+        string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
+        return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
+    }
+
     function readOutput(string memory name) internal view returns (string memory) {
         string memory root = vm.projectRoot();
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
-        return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, ".json")));
+        return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
     }
     
     /**
@@ -69,6 +75,23 @@ library ScriptTools {
      */
     function loadConfig() internal returns (string memory config) {
         config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG")));
+    }
+
+    /**
+     * @notice Used to export important contracts to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primatives, but roll our own for now.
+     * @param name The name to give the json file.
+     * @param label The label of the address.
+     * @param addr The address to export.
+     */
+    function exportContract(string memory name, string memory label, address addr) internal {
+        string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
+        string memory root = vm.projectRoot();
+        string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
+        vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
+        if (!vm.envOr("FOUNDRY_EXPORTS_NO_OVERWRITE_LATEST", false)) {
+            vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
+        }
     }
 
     /**
@@ -105,23 +128,6 @@ library ScriptTools {
 
     function eq(string memory a, string memory b) internal pure returns (bool) {
         return keccak256(bytes(a)) == keccak256(bytes(b));
-    }
-
-    /**
-     * @notice Used to export important contracts to higher level deploy scripts.
-     *         Note waiting on Foundry to have better primatives, but roll our own for now.
-     * @param name The name to give the json file.
-     * @param label The label of the address.
-     * @param addr The address to export.
-     */
-    function exportContract(string memory name, string memory label, address addr) internal {
-        string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
-        string memory root = vm.projectRoot();
-        string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
-        vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
-        if (!vm.envOr("FOUNDRY_EXPORTS_NO_OVERWRITE_LATEST", false)) {
-            vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
-        }
     }
 
     function switchOwner(address base, address deployer, address newOwner) internal {

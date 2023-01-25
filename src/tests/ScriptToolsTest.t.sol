@@ -55,8 +55,8 @@ contract ScriptToolTest is DssTest {
         ScriptTools.exportContract("myExports", "label1", address(1));
         ScriptTools.exportContract("myExports", "label2", address(2));
 
-        // Simulate a subsequent run loading a previously written file
-        loadedExports = ScriptTools.readOutput("myExports-latest");
+        // Simulate a subsequent run loading a previously written file (use latest deploy)
+        loadedExports = ScriptTools.readOutput("myExports");
         assertEq(stdJson.readAddress(loadedExports, "label1"), address(1));
         assertEq(stdJson.readAddress(loadedExports, "label2"), address(2));
     }
