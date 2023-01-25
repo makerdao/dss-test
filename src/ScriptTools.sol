@@ -79,12 +79,14 @@ library ScriptTools {
 
     /**
      * @notice Used to export important contracts to higher level deploy scripts.
-     *         Note waiting on Foundry to have better primatives, but roll our own for now.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Set FOUNDRY_EXPORTS_NAME to override the name of the json file.
      * @param name The name to give the json file.
      * @param label The label of the address.
      * @param addr The address to export.
      */
     function exportContract(string memory name, string memory label, address addr) internal {
+        name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
         string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
         string memory root = vm.projectRoot();
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
@@ -92,6 +94,17 @@ library ScriptTools {
         if (!vm.envOr("FOUNDRY_EXPORTS_NO_OVERWRITE_LATEST", false)) {
             vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
         }
+    }
+
+    /**
+     * @notice Used to export important contracts to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Requires FOUNDRY_EXPORTS_NAME to be set.
+     * @param label The label of the address.
+     * @param addr The address to export.
+     */
+    function exportContract(string memory label, address addr) internal {
+        exportContract(vm.envString("FOUNDRY_EXPORTS_NAME"), label, addr);
     }
 
     /**
