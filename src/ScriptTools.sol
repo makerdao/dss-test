@@ -45,7 +45,7 @@ library ScriptTools {
     function readOutput(string memory name, uint256 timestamp) internal view returns (string memory) {
         string memory root = vm.projectRoot();
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
-        return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
+        return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(timestamp), ".json")));
     }
 
     function readOutput(string memory name) internal view returns (string memory) {
