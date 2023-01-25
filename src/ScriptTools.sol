@@ -31,11 +31,11 @@ library ScriptTools {
     string internal constant DEFAULT_DELIMITER = ",";
     string internal constant DELIMITER_OVERRIDE = "DSSTEST_ARRAY_DELIMITER";
 
-    function getRootChainId() internal returns (uint256) {
-        return vm.envOr("FOUNDRY_ROOT_CHAINID", uint256(1));
+    function getRootChainId() internal view returns (uint256) {
+        return vm.envUint("FOUNDRY_ROOT_CHAINID");
     }
 
-    function readInput(string memory input) internal returns (string memory) {
+    function readInput(string memory input) internal view returns (string memory) {
         string memory root = vm.projectRoot();
         string memory chainInputFolder = string(abi.encodePacked("/script/input/", vm.toString(getRootChainId()), "/"));
         return vm.readFile(string(abi.encodePacked(root, chainInputFolder, input, ".json")));
@@ -45,10 +45,23 @@ library ScriptTools {
      * @notice Use standard environment variables to load config.
      * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
      *      Falls back to FOUNDRY_SCRIPT_CONFIG for a standard file definition.
-     *      Finally will fall back to the given string.
+     *      Finally will fall back to the given string `name`.
+     * @param name The default config file to load if no environment variables are set.
+     * @return config The raw json text of the config.
      */
     function loadConfig(string memory name) internal returns (string memory config) {
         config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name)));
+    }
+    
+    /**
+     * @notice Use standard environment variables to load config.
+     * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
+     *      Falls back to FOUNDRY_SCRIPT_CONFIG for a standard file definition.
+     *      Finally will revert if no environment variables are set.
+     * @return config The raw json text of the config.
+     */
+    function loadConfig() internal returns (string memory config) {
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG")));
     }
 
     /**
