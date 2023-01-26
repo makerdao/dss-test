@@ -79,7 +79,7 @@ library ScriptTools {
     function loadConfig() internal returns (string memory config) {
         config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
         if (eq(config, "")) {
-            config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", string("")));
+            config = readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG"));
         }
     }
     
@@ -108,7 +108,7 @@ library ScriptTools {
     function loadDependencies() internal returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
         if (eq(dependencies, "")) {
-            dependencies = readOutput(vm.envOr("FOUNDRY_SCRIPT_DEPS", string("")));
+            dependencies = readOutput(vm.envString("FOUNDRY_SCRIPT_DEPS"));
         }
     }
 
