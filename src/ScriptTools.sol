@@ -63,7 +63,7 @@ library ScriptTools {
      * @return config The raw json text of the config.
      */
     function loadConfig(string memory name) internal returns (string memory config) {
-        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", "");
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
         if (eq(config, "")) {
             config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name));
         }
@@ -77,9 +77,9 @@ library ScriptTools {
      * @return config The raw json text of the config.
      */
     function loadConfig() internal returns (string memory config) {
-        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", "");
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
         if (eq(config, "")) {
-            config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", ""));
+            config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", string("")));
             if (eq(config, "")) revert("Need either FOUNDRY_SCRIPT_CONFIG_TEXT or FOUNDRY_SCRIPT_CONFIG to be set.");
         }
     }
