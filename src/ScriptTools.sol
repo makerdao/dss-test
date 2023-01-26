@@ -89,11 +89,11 @@ library ScriptTools {
      *      Falls back to FOUNDRY_SCRIPT_DEPS for a standard file definition.
      *      Finally will fall back to the given string `name`.
      * @param name The default dependency file to load if no environment variables are set.
-     * @return config The raw json text of the dependency.
+     * @return dependencies The raw json text of the dependencies.
      */
     function loadDependencies(string memory name) internal returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
-        if (eq(config, "")) {
+        if (eq(dependencies, "")) {
             dependencies = readInput(vm.envOr("FOUNDRY_SCRIPT_DEPS", name));
         }
     }
@@ -103,7 +103,7 @@ library ScriptTools {
      * @dev Will first check FOUNDRY_SCRIPT_DEPS_TEXT for raw json text.
      *      Falls back to FOUNDRY_SCRIPT_DEPS for a standard file definition.
      *      Finally will revert if no environment variables are set.
-     * @return config The raw json text of the dependency.
+     * @return dependencies The raw json text of the dependencies.
      */
     function loadDependencies() internal returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
