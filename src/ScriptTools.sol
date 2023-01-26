@@ -94,7 +94,7 @@ library ScriptTools {
     function loadDependencies(string memory name) internal returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
         if (eq(dependencies, "")) {
-            dependencies = readInput(vm.envOr("FOUNDRY_SCRIPT_DEPS", name));
+            dependencies = readOutput(vm.envOr("FOUNDRY_SCRIPT_DEPS", name));
         }
     }
     
@@ -108,7 +108,7 @@ library ScriptTools {
     function loadDependencies() internal returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
         if (eq(dependencies, "")) {
-            dependencies = readInput(vm.envOr("FOUNDRY_SCRIPT_DEPS", string("")));
+            dependencies = readOutput(vm.envOr("FOUNDRY_SCRIPT_DEPS", string("")));
         }
     }
 
