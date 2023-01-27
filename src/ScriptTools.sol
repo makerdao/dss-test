@@ -63,7 +63,10 @@ library ScriptTools {
      * @return config The raw json text of the config.
      */
     function loadConfig(string memory name) internal returns (string memory config) {
-        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name)));
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
+        if (eq(config, "")) {
+            config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name));
+        }
     }
     
     /**
@@ -74,7 +77,39 @@ library ScriptTools {
      * @return config The raw json text of the config.
      */
     function loadConfig() internal returns (string memory config) {
-        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG")));
+        config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
+        if (eq(config, "")) {
+            config = readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG"));
+        }
+    }
+    
+    /**
+     * @notice Use standard environment variables to load dependencies.
+     * @dev Will first check FOUNDRY_SCRIPT_DEPS_TEXT for raw json text.
+     *      Falls back to FOUNDRY_SCRIPT_DEPS for a standard file definition.
+     *      Finally will fall back to the given string `name`.
+     * @param name The default dependency file to load if no environment variables are set.
+     * @return dependencies The raw json text of the dependencies.
+     */
+    function loadDependencies(string memory name) internal returns (string memory dependencies) {
+        dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
+        if (eq(dependencies, "")) {
+            dependencies = readOutput(vm.envOr("FOUNDRY_SCRIPT_DEPS", name));
+        }
+    }
+    
+    /**
+     * @notice Use standard environment variables to load dependencies.
+     * @dev Will first check FOUNDRY_SCRIPT_DEPS_TEXT for raw json text.
+     *      Falls back to FOUNDRY_SCRIPT_DEPS for a standard file definition.
+     *      Finally will revert if no environment variables are set.
+     * @return dependencies The raw json text of the dependencies.
+     */
+    function loadDependencies() internal returns (string memory dependencies) {
+        dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
+        if (eq(dependencies, "")) {
+            dependencies = readOutput(vm.envString("FOUNDRY_SCRIPT_DEPS"));
+        }
     }
 
     /**
@@ -91,7 +126,7 @@ library ScriptTools {
         string memory root = vm.projectRoot();
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
         vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
-        if (!vm.envOr("FOUNDRY_EXPORTS_NO_OVERWRITE_LATEST", false)) {
+        if (vm.envOr("FOUNDRY_EXPORTS_OVERWRITE_LATEST", false)) {
             vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
         }
     }
