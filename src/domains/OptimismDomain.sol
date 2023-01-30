@@ -21,6 +21,11 @@ import { Domain, BridgedDomain } from "./BridgedDomain.sol";
 import { StdChains } from "forge-std/StdChains.sol";
 
 interface MessengerLike {
+    function sendMessage(
+        address target,
+        bytes memory message,
+        uint32 gasLimit
+    ) external;
     function relayMessage(
         address _target,
         address _sender,

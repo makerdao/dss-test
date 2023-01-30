@@ -22,6 +22,16 @@ import "../domains/RootDomain.sol";
 import "../domains/OptimismDomain.sol";
 import "../domains/ArbitrumDomain.sol";
 
+contract MessageOrdering {
+
+    uint256[] public messages;
+
+    function push(uint256 messageId) public {
+        messages.push(messageId);
+    }
+
+}
+
 interface OptimismDaiBridgeLike {
     function depositERC20To(address, address, address, uint256, uint32, bytes calldata) external;
     function withdrawTo(address, address, uint256, uint32, bytes calldata) external;
@@ -193,6 +203,22 @@ contract IntegrationTest is DssTest {
         arbitrum.relayToHost(true);
 
         assertEq(dss.dai.balanceOf(address(this)), 75 ether);
+    }
+
+    function test_optimism_message_ordering() public {
+        MessageOrdering mo1 = new MessageOrdering();
+
+        optimism.selectFork();
+
+        MessageOrdering mo2 = new MessageOrdering();
+
+        rootDomain.selectFork();
+
+        optimism.l2Messenger().sendMessage(
+            guest,
+            abi.encodeWithSelector(DomainGuestLike.finalizeSettle.selector, sourceDomain, targetDomain, _amount),
+            gasLimit
+        );
     }
 
 }
