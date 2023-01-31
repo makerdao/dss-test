@@ -29,6 +29,17 @@ interface MessengerLike {
     ) external;
 }
 
+interface BedrockMessengerLike {
+    function relayMessage(
+        uint256 _nonce,
+        address _sender,
+        address _target,
+        uint256 _value,
+        uint256 _minGasLimit,
+        bytes calldata _message
+    ) external payable;
+}
+
 contract OptimismDomain is BridgedDomain {
 
     MessengerLike public immutable l1Messenger;
@@ -56,9 +67,14 @@ contract OptimismDomain is BridgedDomain {
             Vm.Log memory log = logs[i];
             if (log.topics[0] == SENT_MESSAGE_TOPIC) {
                 address target = address(uint160(uint256(log.topics[1])));
-                (address sender, bytes memory message, uint40 nonce,) = abi.decode(log.data, (address, bytes, uint40, uint32));
+                (address sender, bytes memory message, uint256 nonce, uint256 gasLimit) = abi.decode(log.data, (address, bytes, uint256, uint256));
                 vm.startPrank(malias);
-                l2Messenger.relayMessage(target, sender, message, nonce);
+                if (block.chainid == 420) {
+                    // Goerli has been upgraded to bedrock which has a new relay interface
+                    BedrockMessengerLike(address(l2Messenger)).relayMessage(nonce, sender, target, 0, gasLimit, message);
+                } else {
+                    l2Messenger.relayMessage(target, sender, message, nonce);
+                }
                 vm.stopPrank();
             }
         }
@@ -78,7 +94,7 @@ contract OptimismDomain is BridgedDomain {
             Vm.Log memory log = logs[i];
             if (log.topics[0] == SENT_MESSAGE_TOPIC) {
                 address target = address(uint160(uint256(log.topics[1])));
-                (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint40, uint32));
+                (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint256, uint256));
                 // Set xDomainMessageSender
                 vm.store(
                     address(l1Messenger),
