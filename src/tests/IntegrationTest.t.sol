@@ -205,20 +205,102 @@ contract IntegrationTest is DssTest {
         assertEq(dss.dai.balanceOf(address(this)), 75 ether);
     }
 
-    function test_optimism_message_ordering() public {
-        MessageOrdering mo1 = new MessageOrdering();
+    function test_optimism_message_ordering_targeting_and_persistence() public {
+        MessageOrdering moRoot = new MessageOrdering();
 
         optimism.selectFork();
 
-        MessageOrdering mo2 = new MessageOrdering();
+        MessageOrdering moOptimism = new MessageOrdering();
 
+        // Queue up some L2 -> L1 messages
+        optimism.l2Messenger().sendMessage(
+            address(moRoot),
+            abi.encodeWithSelector(MessageOrdering.push.selector, 3),
+            100000
+        );
+        optimism.l2Messenger().sendMessage(
+            address(moRoot),
+            abi.encodeWithSelector(MessageOrdering.push.selector, 4),
+            100000
+        );
+
+        // Do not relay right away
         rootDomain.selectFork();
 
-        optimism.l2Messenger().sendMessage(
-            guest,
-            abi.encodeWithSelector(DomainGuestLike.finalizeSettle.selector, sourceDomain, targetDomain, _amount),
-            gasLimit
+        // Queue up two more L1 -> L2 messages
+        optimism.l1Messenger().sendMessage(
+            address(moOptimism),
+            abi.encodeWithSelector(MessageOrdering.push.selector, 1),
+            100000
         );
+        optimism.l1Messenger().sendMessage(
+            address(moOptimism),
+            abi.encodeWithSelector(MessageOrdering.push.selector, 2),
+            100000
+        );
+
+        optimism.relayFromHost(true);
+
+        assertEq(moOptimism.messages(0), 1);
+        assertEq(moOptimism.messages(1), 2);
+
+        optimism.relayToHost(true);
+
+        assertEq(moRoot.messages(0), 3);
+        assertEq(moRoot.messages(1), 4);
+    }
+
+    function test_arbitrum_message_ordering_targeting_and_persistence() public {
+        MessageOrdering moRoot = new MessageOrdering();
+
+        arbitrum.selectFork();
+
+        MessageOrdering moArbitrum = new MessageOrdering();
+
+        // Queue up some L2 -> L1 messages
+        ArbSysOverride(arbitrum.arbSys()).sendTxToL1(
+            address(moRoot),
+            abi.encodeWithSelector(MessageOrdering.push.selector, 3)
+        );
+        ArbSysOverride(arbitrum.arbSys()).sendTxToL1(
+            address(moRoot),
+            abi.encodeWithSelector(MessageOrdering.push.selector, 4)
+        );
+
+        // Do not relay right away
+        rootDomain.selectFork();
+
+        // Queue up two more L1 -> L2 messages
+        arbitrum.inbox().createRetryableTicket{value: 1 ether}(
+            address(moArbitrum),
+            0,
+            1 ether,
+            msg.sender,
+            msg.sender,
+            100000,
+            0,
+            abi.encodeWithSelector(MessageOrdering.push.selector, 1)
+        );
+        arbitrum.inbox().createRetryableTicket{value: 1 ether}(
+            address(moArbitrum),
+            0,
+            1 ether,
+            msg.sender,
+            msg.sender,
+            100000,
+            0,
+            abi.encodeWithSelector(MessageOrdering.push.selector, 2)
+        );
+
+        arbitrum.relayFromHost(true);
+
+        assertEq(moArbitrum.messages(0), 1);
+        assertEq(moArbitrum.messages(1), 2);
+
+        arbitrum.relayToHost(true);
+
+        assertEq(moRoot.messages(0), 3);
+        assertEq(moRoot.messages(1), 4);
     }
 
 }

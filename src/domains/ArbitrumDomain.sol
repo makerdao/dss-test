@@ -17,10 +17,21 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Vm.sol";
 
+import { RecordedLogs } from "./RecordedLogs.sol";
 import { Domain, BridgedDomain } from "./BridgedDomain.sol";
 import { StdChains } from "forge-std/StdChains.sol";
 
 interface InboxLike {
+    function createRetryableTicket(
+        address destAddr,
+        uint256 arbTxCallValue,
+        uint256 maxSubmissionCost,
+        address submissionRefundAddress,
+        address valueRefundAddress,
+        uint256 maxGas,
+        uint256 gasPriceBid,
+        bytes calldata data
+    ) external payable returns (uint256);
     function bridge() external view returns (address);
 }
 
@@ -102,7 +113,7 @@ contract ArbitrumDomain is BridgedDomain {
         selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
-        Vm.Log[] memory logs = vm.getRecordedLogs();
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
             if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
@@ -136,7 +147,7 @@ contract ArbitrumDomain is BridgedDomain {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under host fork
-        Vm.Log[] memory logs = vm.getRecordedLogs();
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
             if (log.topics[0] == SEND_TO_L1_TOPIC) {
