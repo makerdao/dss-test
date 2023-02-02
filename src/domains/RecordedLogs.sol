@@ -34,6 +34,17 @@ contract RecordedLogsStorage {
         return _logs;
     }
 
+    function getLogs(uint256 startIndex) public view returns (Vm.Log[] memory) {
+        if (startIndex >= _logs.length) {
+            return new Vm.Log[](0);
+        }
+        Vm.Log[] memory logs = new Vm.Log[](_logs.length - startIndex);
+        for (uint256 i = startIndex; i < _logs.length; i++) {
+            logs[i - startIndex] = _logs[i];
+        }
+        return logs;
+    }
+
 }
 
 library RecordedLogs {
@@ -66,6 +77,12 @@ library RecordedLogs {
         checkInitialized();
         STORAGE.addLogs(vm.getRecordedLogs());
         return STORAGE.getLogs();
+    }
+
+    function getLogs(uint256 startIndex) internal returns (Vm.Log[] memory) {
+        checkInitialized();
+        STORAGE.addLogs(vm.getRecordedLogs());
+        return STORAGE.getLogs(startIndex);
     }
 
 }

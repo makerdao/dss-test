@@ -116,12 +116,13 @@ contract ArbitrumDomain is BridgedDomain {
         selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
-        Vm.Log[] memory logs = RecordedLogs.getLogs();
-        for (; lastFromHostLogIndex < logs.length; lastFromHostLogIndex++) {
-            Vm.Log memory log = logs[lastFromHostLogIndex];
+        Vm.Log[] memory logs = RecordedLogs.getLogs(lastFromHostLogIndex);
+        lastFromHostLogIndex += logs.length;
+        for (uint256 i = 0; i < logs.length; i++) {
+            Vm.Log memory log = logs[i];
             if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
                 // We need both the current event and the one that follows for all the relevant data
-                Vm.Log memory logWithData = logs[lastFromHostLogIndex + 1];
+                Vm.Log memory logWithData = logs[i + 1];
                 (,, address sender,,,) = abi.decode(log.data, (address, uint8, address, bytes32, uint256, uint64));
                 (address target, bytes memory message) = parseData(logWithData.data);
                 vm.startPrank(sender);
@@ -150,9 +151,10 @@ contract ArbitrumDomain is BridgedDomain {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under host fork
-        Vm.Log[] memory logs = RecordedLogs.getLogs();
-        for (; lastToHostLogIndex < logs.length; lastToHostLogIndex++) {
-            Vm.Log memory log = logs[lastToHostLogIndex];
+        Vm.Log[] memory logs = RecordedLogs.getLogs(lastToHostLogIndex);
+        lastToHostLogIndex += logs.length;
+        for (uint256 i = 0; i < logs.length; i++) {
+            Vm.Log memory log = logs[i];
             if (log.topics[0] == SEND_TO_L1_TOPIC) {
                 (address sender, address target, bytes memory message) = abi.decode(log.data, (address, address, bytes));
                 l2ToL1Sender = sender;
