@@ -17,10 +17,21 @@ pragma solidity >=0.8.0;
 
 import "forge-std/Vm.sol";
 
+import { RecordedLogs } from "./RecordedLogs.sol";
 import { Domain, BridgedDomain } from "./BridgedDomain.sol";
 import { StdChains } from "forge-std/StdChains.sol";
 
 interface InboxLike {
+    function createRetryableTicket(
+        address destAddr,
+        uint256 arbTxCallValue,
+        uint256 maxSubmissionCost,
+        address submissionRefundAddress,
+        address valueRefundAddress,
+        uint256 maxGas,
+        uint256 gasPriceBid,
+        bytes calldata data
+    ) external payable returns (uint256);
     function bridge() external view returns (address);
 }
 
@@ -55,6 +66,9 @@ contract ArbitrumDomain is BridgedDomain {
 
     bytes32 constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 constant SEND_TO_L1_TOPIC = keccak256("SendTxToL1(address,address,bytes)");
+
+    uint256 internal lastFromHostLogIndex;
+    uint256 internal lastToHostLogIndex;
 
     constructor(string memory _config, StdChains.Chain memory _chain, Domain _hostDomain) Domain(_config, _chain) BridgedDomain(_hostDomain) {
         inbox = InboxLike(readConfigAddress("inbox"));
@@ -102,12 +116,12 @@ contract ArbitrumDomain is BridgedDomain {
         selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
-        Vm.Log[] memory logs = vm.getRecordedLogs();
-        for (uint256 i = 0; i < logs.length; i++) {
-            Vm.Log memory log = logs[i];
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
+        for (; lastFromHostLogIndex < logs.length; lastFromHostLogIndex++) {
+            Vm.Log memory log = logs[lastFromHostLogIndex];
             if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
                 // We need both the current event and the one that follows for all the relevant data
-                Vm.Log memory logWithData = logs[i + 1];
+                Vm.Log memory logWithData = logs[lastFromHostLogIndex + 1];
                 (,, address sender,,,) = abi.decode(log.data, (address, uint8, address, bytes32, uint256, uint64));
                 (address target, bytes memory message) = parseData(logWithData.data);
                 vm.startPrank(sender);
@@ -136,9 +150,9 @@ contract ArbitrumDomain is BridgedDomain {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under host fork
-        Vm.Log[] memory logs = vm.getRecordedLogs();
-        for (uint256 i = 0; i < logs.length; i++) {
-            Vm.Log memory log = logs[i];
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
+        for (; lastToHostLogIndex < logs.length; lastToHostLogIndex++) {
+            Vm.Log memory log = logs[lastToHostLogIndex];
             if (log.topics[0] == SEND_TO_L1_TOPIC) {
                 (address sender, address target, bytes memory message) = abi.decode(log.data, (address, address, bytes));
                 l2ToL1Sender = sender;
