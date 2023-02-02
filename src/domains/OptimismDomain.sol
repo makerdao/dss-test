@@ -77,11 +77,12 @@ contract OptimismDomain is BridgedDomain {
         }
 
         // Read all L1 -> L2 messages and relay them under Optimism fork
-        Vm.Log[] memory logs = RecordedLogs.getLogs();
         if (!isGoerli() && lastToHostLogIndex > lastFromHostLogIndex) lastFromHostLogIndex = lastToHostLogIndex;
-        for (; lastFromHostLogIndex < logs.length; lastFromHostLogIndex++) {
-            Vm.Log memory log = logs[lastFromHostLogIndex];
-            if (log.topics[0] == SENT_MESSAGE_TOPIC && (!isGoerli() || logs[lastFromHostLogIndex - 1].topics[0] == DEPOSIT_IDENTIFIER)) {
+        Vm.Log[] memory logs = RecordedLogs.getLogs(lastFromHostLogIndex);
+        lastFromHostLogIndex += logs.length;
+        for (uint256 i = 0; i < logs.length; i++) {
+            Vm.Log memory log = logs[i];
+            if (log.topics[0] == SENT_MESSAGE_TOPIC && (!isGoerli() || logs[i - 1].topics[0] == DEPOSIT_IDENTIFIER)) {
                 address target = address(uint160(uint256(log.topics[1])));
                 (address sender, bytes memory message, uint256 nonce, uint256 gasLimit) = abi.decode(log.data, (address, bytes, uint256, uint256));
                 vm.startPrank(malias);
@@ -105,11 +106,12 @@ contract OptimismDomain is BridgedDomain {
 
         // Read all L2 -> L1 messages and relay them under Primary fork
         // Note: We bypass the L1 messenger relay here because it's easier to not have to generate valid state roots / merkle proofs
-        Vm.Log[] memory logs = RecordedLogs.getLogs();
         if (!isGoerli() && lastFromHostLogIndex > lastToHostLogIndex) lastToHostLogIndex = lastFromHostLogIndex;
-        for (; lastToHostLogIndex < logs.length; lastToHostLogIndex++) {
-            Vm.Log memory log = logs[lastToHostLogIndex];
-            if (log.topics[0] == SENT_MESSAGE_TOPIC && (!isGoerli() || logs[lastToHostLogIndex - 1].topics[0] == WITHDRAW_IDENTIFIER)) {
+        Vm.Log[] memory logs = RecordedLogs.getLogs(lastToHostLogIndex);
+        lastToHostLogIndex += logs.length;
+        for (uint256 i = 0; i < logs.length; i++) {
+            Vm.Log memory log = logs[i];
+            if (log.topics[0] == SENT_MESSAGE_TOPIC && (!isGoerli() || logs[i - 1].topics[0] == WITHDRAW_IDENTIFIER)) {
                 address target = address(uint160(uint256(log.topics[1])));
                 (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint256, uint256));
                 // Set xDomainMessageSender
