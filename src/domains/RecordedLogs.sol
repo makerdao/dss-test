@@ -16,13 +16,10 @@
 pragma solidity >=0.8.0;
 
 import { Vm } from "forge-std/Vm.sol";
+import { ScriptTools } from "../ScriptTools.sol";
 
 library RecordedLogs {
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
-
-    function _write(string memory json) private {
-        vm.writeJson(json, string(abi.encodePacked(vm.projectRoot(), "/cache/logs", _uintToString(uint256(bytes32(msg.sig))), ".json")));
-    }
 
     function _uintToString(uint256 v) private pure returns (string memory str) {
         if (v == 0) {
@@ -44,17 +41,9 @@ library RecordedLogs {
         str = string(bstr);
     }
 
-    function initFile() internal {
-        _write("");
-        vm.removeFile(string(abi.encodePacked(vm.projectRoot(), "/cache/logs", _uintToString(uint256(bytes32(msg.sig))), ".json")));
-        string memory json = vm.serializeUint("LOG", "count", 0);
-        _write(json);
-    }
-
     function getLogs() internal returns (Vm.Log[] memory) {
-        // emitter is not needed at least for now
-        string memory _logs = string(vm.readFile(string(abi.encodePacked(vm.projectRoot(), "/cache/logs", _uintToString(uint256(bytes32(msg.sig))), ".json"))));
-        uint256 count = abi.decode(vm.parseJson(_logs, "count"), (uint256));
+        string memory _logs = vm.serializeUint("LOG", "a", 0);
+        uint256 count = ScriptTools.eq(_logs, '{"a":0}') ? 0 : abi.decode(vm.parseJson(_logs, "count"), (uint256));
 
         Vm.Log[] memory newLogs = vm.getRecordedLogs();
         Vm.Log[] memory logs = new Vm.Log[](count + newLogs.length);
@@ -70,19 +59,17 @@ library RecordedLogs {
                 logs[i].data = data;
             }
             logs[i].topics  = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(_uintToString(i), "_", "topics"))), (bytes32[]));
+            // emitter is not needed at least for now
             // logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(_uintToString(i), "_", "emitter"))), (address));
         }
 
         for (uint256 i = 0; i < newLogs.length; i++) {
-            vm.serializeBytes("LOG", string(abi.encodePacked(_uintToString(count), "_", "data")), newLogs[i].data);
-            vm.serializeBytes32("LOG", string(abi.encodePacked(_uintToString(count), "_", "topics")), newLogs[i].topics);
-            // vm.serializeAddress("LOG", string(abi.encodePacked(_uintToString(count), "_", "emitter")), newLogs[i].emitter);
-            logs[count].data = newLogs[i].data;
-            logs[count].topics  = newLogs[i].topics;
-            // logs[count].emitter = newLogs[i].emitter;
+            vm.serializeBytes("LOG", string(abi.encodePacked(_uintToString(count), "_", "data")), logs[count].data = newLogs[i].data);
+            vm.serializeBytes32("LOG", string(abi.encodePacked(_uintToString(count), "_", "topics")), logs[count].topics = newLogs[i].topics);
+            // vm.serializeAddress("LOG", string(abi.encodePacked(_uintToString(count), "_", "emitter")), logs[count].emitter = newLogs[i].emitter);
             count++;
         }
-        _write(vm.serializeUint("LOG", "count", count));
+        vm.serializeUint("LOG", "count", count);
 
         return logs;
     }

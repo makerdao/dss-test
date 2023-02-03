@@ -111,8 +111,6 @@ contract IntegrationTest is DssTest {
     }
 
     function test_optimism_relay() public {
-        RecordedLogs.initFile();
-
         OptimismDaiBridgeLike bridge = OptimismDaiBridgeLike(dss.chainlog.getAddress("OPTIMISM_DAI_BRIDGE"));
         DaiAbstract l2Dai = DaiAbstract(bridge.l2Token());
         OptimismDaiBridgeLike l2Bridge = OptimismDaiBridgeLike(bridge.l2DAITokenBridge());
@@ -126,7 +124,7 @@ contract IntegrationTest is DssTest {
         assertEq(dss.dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        optimism.relayFromHost(RecordedLogs.getLogs(), true);
+        optimism.relayFromHost(true);
 
         // We are on Optimism fork with message relayed now
         assertEq(l2Dai.balanceOf(address(this)), 100 ether);
@@ -137,7 +135,7 @@ contract IntegrationTest is DssTest {
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        optimism.relayToHost(RecordedLogs.getLogs(), true);
+        optimism.relayToHost(true);
 
         // We are on Mainnet fork with message relayed now
         assertEq(dss.dai.balanceOf(address(this)), 100 ether);
@@ -147,21 +145,19 @@ contract IntegrationTest is DssTest {
         bridge.depositERC20To(address(dss.dai), address(l2Dai), address(this), 50 ether, 1_000_000, "");
         assertEq(dss.dai.balanceOf(address(this)), 50 ether);
 
-        optimism.relayFromHost(RecordedLogs.getLogs(), true);
+        optimism.relayFromHost(true);
 
         assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);
         l2Bridge.withdrawTo(address(l2Dai), address(this), 25 ether, 1_000_000, "");
         assertEq(l2Dai.balanceOf(address(this)), 25 ether);
 
-        optimism.relayToHost(RecordedLogs.getLogs(), true);
+        optimism.relayToHost(true);
 
         assertEq(dss.dai.balanceOf(address(this)), 75 ether);
     }
 
     function test_arbitrum_relay() public {
-        RecordedLogs.initFile();
-
         ArbitrumDaiBridgeLike bridge = ArbitrumDaiBridgeLike(dss.chainlog.getAddress("ARBITRUM_DAI_BRIDGE"));
         DaiAbstract l1Dai = dss.dai;
         DaiAbstract l2Dai = DaiAbstract(bridge.l2Dai());
@@ -176,7 +172,7 @@ contract IntegrationTest is DssTest {
         assertEq(l1Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        arbitrum.relayFromHost(RecordedLogs.getLogs(), true);
+        arbitrum.relayFromHost(true);
 
         // We are on Arbitrum fork with message relayed now
         assertEq(l2Dai.balanceOf(address(this)), 100 ether);
@@ -187,7 +183,7 @@ contract IntegrationTest is DssTest {
         assertEq(l2Dai.balanceOf(address(this)), 0);
 
         // Relay the message
-        arbitrum.relayToHost(RecordedLogs.getLogs(), true);
+        arbitrum.relayToHost(true);
 
         // We are on Mainnet fork with message relayed now
         assertEq(dss.dai.balanceOf(address(this)), 100 ether);
@@ -197,21 +193,19 @@ contract IntegrationTest is DssTest {
         bridge.outboundTransfer{value:1 ether}(address(l1Dai), address(this), 50 ether, 1_000_000, 0, abi.encode(uint256(1 ether), bytes("")));
         assertEq(dss.dai.balanceOf(address(this)), 50 ether);
 
-        arbitrum.relayFromHost(RecordedLogs.getLogs(), true);
+        arbitrum.relayFromHost(true);
 
         assertEq(l2Dai.balanceOf(address(this)), 50 ether);
         l2Dai.approve(address(l2Bridge), 25 ether);
         l2Bridge.outboundTransfer(address(l1Dai), address(this), 25 ether, "");
         assertEq(l2Dai.balanceOf(address(this)), 25 ether);
 
-        arbitrum.relayToHost(RecordedLogs.getLogs(), true);
+        arbitrum.relayToHost(true);
 
         assertEq(dss.dai.balanceOf(address(this)), 75 ether);
     }
 
     function test_optimism_message_ordering_targeting_and_persistence() public {
-        RecordedLogs.initFile();
-
         if (block.chainid == 1) return;   // Ignoring mainnet optimism test for now because there is no differentiator for message direction before Bedrock upgrade
 
         MessageOrdering moRoot = new MessageOrdering();
@@ -247,20 +241,18 @@ contract IntegrationTest is DssTest {
             100000
         );
 
-        optimism.relayFromHost(RecordedLogs.getLogs(), true);
+        optimism.relayFromHost(true);
 
         assertEq(moOptimism.messages(0), 1);
         assertEq(moOptimism.messages(1), 2);
 
-        optimism.relayToHost(RecordedLogs.getLogs(), true);
+        optimism.relayToHost(true);
 
         assertEq(moRoot.messages(0), 3);
         assertEq(moRoot.messages(1), 4);
     }
 
     function test_arbitrum_message_ordering_targeting_and_persistence() public {
-        RecordedLogs.initFile();
-
         MessageOrdering moRoot = new MessageOrdering();
 
         arbitrum.selectFork();
@@ -302,12 +294,12 @@ contract IntegrationTest is DssTest {
             abi.encodeWithSelector(MessageOrdering.push.selector, 2)
         );
 
-        arbitrum.relayFromHost(RecordedLogs.getLogs(), true);
+        arbitrum.relayFromHost(true);
 
         assertEq(moArbitrum.messages(0), 1);
         assertEq(moArbitrum.messages(1), 2);
 
-        arbitrum.relayToHost(RecordedLogs.getLogs(), true);
+        arbitrum.relayToHost(true);
 
         assertEq(moRoot.messages(0), 3);
         assertEq(moRoot.messages(1), 4);

@@ -69,7 +69,7 @@ contract OptimismDomain is BridgedDomain {
         return keccak256(bytes(details().chainAlias)) == keccak256(bytes("optimism_goerli"));
     }
 
-    function relayFromHost(Vm.Log[] memory logs, bool switchToGuest) external override {
+    function relayFromHost(bool switchToGuest) external override {
         selectFork();
         address malias;
         unchecked {
@@ -77,7 +77,7 @@ contract OptimismDomain is BridgedDomain {
         }
 
         // Read all L1 -> L2 messages and relay them under Optimism fork
-        // Vm.Log[] memory logs = RecordedLogs.getLogs();
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
         if (!isGoerli() && lastToHostLogIndex > lastFromHostLogIndex) lastFromHostLogIndex = lastToHostLogIndex;
         for (; lastFromHostLogIndex < logs.length; lastFromHostLogIndex++) {
             Vm.Log memory log = logs[lastFromHostLogIndex];
@@ -100,13 +100,12 @@ contract OptimismDomain is BridgedDomain {
         }
     }
 
-    function relayToHost(Vm.Log[] memory logs, bool switchToHost) external override {
+    function relayToHost(bool switchToHost) external override {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
         // Note: We bypass the L1 messenger relay here because it's easier to not have to generate valid state roots / merkle proofs
-        // Vm.Log[] memory logs = RecordedLogs.getLogs();
-
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
         if (!isGoerli() && lastFromHostLogIndex > lastToHostLogIndex) lastToHostLogIndex = lastFromHostLogIndex;
         for (; lastToHostLogIndex < logs.length; lastToHostLogIndex++) {
             Vm.Log memory log = logs[lastToHostLogIndex];

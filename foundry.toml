@@ -5,8 +5,7 @@ libs = ['lib']
 fs_permissions = [
     { access = "read", path = "./script/input/"},
     { access = "read-write", path = "./script/output/"},
-    { access = "read", path = "./out/"},
-    { access = "read-write", path = "./cache/"}
+    { access = "read", path = "./out/"}
 ]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

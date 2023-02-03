@@ -26,6 +26,6 @@ abstract contract BridgedDomain is Domain {
         hostDomain = _hostDomain;
     }
 
-    function relayFromHost(Vm.Log[] memory, bool switchToGuest) external virtual;
-    function relayToHost(Vm.Log[] memory, bool switchToHost) external virtual;
+    function relayFromHost(bool switchToGuest) external virtual;
+    function relayToHost(bool switchToHost) external virtual;
 }
