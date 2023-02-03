@@ -112,11 +112,11 @@ contract ArbitrumDomain is BridgedDomain {
         }
     }
 
-    function relayFromHost(bool switchToGuest) external override {
+    function relayFromHost(Vm.Log[] memory logs, bool switchToGuest) external override {
         selectFork();
 
         // Read all L1 -> L2 messages and relay them under Arbitrum fork
-        Vm.Log[] memory logs = RecordedLogs.getLogs();
+        // Vm.Log[] memory logs = RecordedLogs.getLogs();
         for (; lastFromHostLogIndex < logs.length; lastFromHostLogIndex++) {
             Vm.Log memory log = logs[lastFromHostLogIndex];
             if (log.topics[0] == MESSAGE_DELIVERED_TOPIC) {
@@ -146,11 +146,11 @@ contract ArbitrumDomain is BridgedDomain {
         }
     }
 
-    function relayToHost(bool switchToHost) external override {
+    function relayToHost(Vm.Log[] memory logs, bool switchToHost) external override {
         hostDomain.selectFork();
 
         // Read all L2 -> L1 messages and relay them under host fork
-        Vm.Log[] memory logs = RecordedLogs.getLogs();
+        // Vm.Log[] memory logs = RecordedLogs.getLogs();
         for (; lastToHostLogIndex < logs.length; lastToHostLogIndex++) {
             Vm.Log memory log = logs[lastToHostLogIndex];
             if (log.topics[0] == SEND_TO_L1_TOPIC) {

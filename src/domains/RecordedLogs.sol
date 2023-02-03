@@ -17,55 +17,73 @@ pragma solidity >=0.8.0;
 
 import { Vm } from "forge-std/Vm.sol";
 
-contract RecordedLogsStorage {
-
-    Vm.Log[] private _logs;
-
-    constructor() {
-    }
-
-    function addLogs(Vm.Log[] memory newLogs) public {
-        for (uint256 i = 0; i < newLogs.length; i++) {
-            _logs.push(newLogs[i]);
-        }
-    }
-
-    function getLogs() public view returns (Vm.Log[] memory) {
-        return _logs;
-    }
-
-}
-
 library RecordedLogs {
-
-    RecordedLogsStorage public constant STORAGE = RecordedLogsStorage(address(uint160(uint256(keccak256("RECORDED_LOGS_STORAGE")))));
-
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
-    function isContract(address _addr) private view returns (bool){
-        uint32 size;
-        assembly {
-            size := extcodesize(_addr)
-        }
-        return (size > 0);
+    function _write(string memory json) private {
+        vm.writeJson(json, string(abi.encodePacked(vm.projectRoot(), "/cache/logs", _uintToString(uint256(bytes32(msg.sig))), ".json")));
     }
 
-    function checkInitialized() private {
-        if (!isContract(address(STORAGE))) {
-            bytes memory bytecode = vm.getCode("RecordedLogs.sol:RecordedLogsStorage");
-            address deployed;
-            assembly {
-                deployed := create(0, add(bytecode, 0x20), mload(bytecode))
-            }
-            vm.etch(address(STORAGE), deployed.code);
-            vm.makePersistent(address(STORAGE));
+    function _uintToString(uint256 v) private pure returns (string memory str) {
+        if (v == 0) {
+            return "0";
         }
+        uint256 j = v;
+        uint256 length;
+        while (j != 0) {
+            length++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(length);
+        uint256 k = length;
+        j = v;
+        while (j != 0) {
+            bstr[--k] = bytes1(uint8(48 + j % 10));
+            j /= 10;
+        }
+        str = string(bstr);
+    }
+
+    function initFile() internal {
+        _write("");
+        vm.removeFile(string(abi.encodePacked(vm.projectRoot(), "/cache/logs", _uintToString(uint256(bytes32(msg.sig))), ".json")));
+        string memory json = vm.serializeUint("LOG", "count", 0);
+        _write(json);
     }
 
     function getLogs() internal returns (Vm.Log[] memory) {
-        checkInitialized();
-        STORAGE.addLogs(vm.getRecordedLogs());
-        return STORAGE.getLogs();
-    }
+        // emitter is not needed at least for now
+        string memory _logs = string(vm.readFile(string(abi.encodePacked(vm.projectRoot(), "/cache/logs", _uintToString(uint256(bytes32(msg.sig))), ".json"))));
+        uint256 count = abi.decode(vm.parseJson(_logs, "count"), (uint256));
 
+        Vm.Log[] memory newLogs = vm.getRecordedLogs();
+        Vm.Log[] memory logs = new Vm.Log[](count + newLogs.length);
+        for (uint256 i = 0; i < count; i++) {
+            bytes memory rawData = vm.parseJson(_logs, string(abi.encodePacked(_uintToString(i), "_", "data")));
+            if (rawData.length > 64) {
+                // We only care about the data field, so we can skip the first 64 bytes
+                // logs that are actually less than 64 bytes are not relevant as message passing
+                bytes memory data = new bytes(rawData.length - 64);
+                for (uint256 j = 0; j < data.length; j++) {
+                    data[j] = rawData[j + 64];
+                }
+                logs[i].data = data;
+            }
+            logs[i].topics  = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(_uintToString(i), "_", "topics"))), (bytes32[]));
+            // logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(_uintToString(i), "_", "emitter"))), (address));
+        }
+
+        for (uint256 i = 0; i < newLogs.length; i++) {
+            vm.serializeBytes("LOG", string(abi.encodePacked(_uintToString(count), "_", "data")), newLogs[i].data);
+            vm.serializeBytes32("LOG", string(abi.encodePacked(_uintToString(count), "_", "topics")), newLogs[i].topics);
+            // vm.serializeAddress("LOG", string(abi.encodePacked(_uintToString(count), "_", "emitter")), newLogs[i].emitter);
+            logs[count].data = newLogs[i].data;
+            logs[count].topics  = newLogs[i].topics;
+            // logs[count].emitter = newLogs[i].emitter;
+            count++;
+        }
+        _write(vm.serializeUint("LOG", "count", count));
+
+        return logs;
+    }
 }

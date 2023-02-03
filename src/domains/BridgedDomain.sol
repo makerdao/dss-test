@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity >=0.8.0;
 
+import "forge-std/Vm.sol";
 import { Domain } from "./Domain.sol";
 
 abstract contract BridgedDomain is Domain {
@@ -25,6 +26,6 @@ abstract contract BridgedDomain is Domain {
         hostDomain = _hostDomain;
     }
 
-    function relayFromHost(bool switchToGuest) external virtual;
-    function relayToHost(bool switchToHost) external virtual;
+    function relayFromHost(Vm.Log[] memory, bool switchToGuest) external virtual;
+    function relayToHost(Vm.Log[] memory, bool switchToHost) external virtual;
 }
