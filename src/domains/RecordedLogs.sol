@@ -40,14 +40,13 @@ library RecordedLogs {
                 logs[i].data = data;
             }
             logs[i].topics  = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "topics"))), (bytes32[]));
-            // emitter is not needed, at least in the actual domains implementations
-            // logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "emitter"))), (address));
+            logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "emitter"))), (address));
         }
 
         for (uint256 i = 0; i < newLogs.length; i++) {
             vm.serializeBytes("LOG", string(abi.encodePacked(vm.toString(count), "_", "data")), logs[count].data = newLogs[i].data);
             vm.serializeBytes32("LOG", string(abi.encodePacked(vm.toString(count), "_", "topics")), logs[count].topics = newLogs[i].topics);
-            // vm.serializeAddress("LOG", string(abi.encodePacked(vm.toString(count), "_", "emitter")), logs[count].emitter = newLogs[i].emitter);
+            vm.serializeAddress("LOG", string(abi.encodePacked(vm.toString(count), "_", "emitter")), logs[count].emitter = newLogs[i].emitter);
             count++;
         }
         vm.serializeUint("LOG", "count", count);

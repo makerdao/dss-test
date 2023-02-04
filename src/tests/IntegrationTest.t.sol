@@ -206,8 +206,6 @@ contract IntegrationTest is DssTest {
     }
 
     function test_optimism_message_ordering_targeting_and_persistence() public {
-        if (block.chainid == 1) return;   // Ignoring mainnet optimism test for now because there is no differentiator for message direction before Bedrock upgrade
-
         MessageOrdering moRoot = new MessageOrdering();
 
         optimism.selectFork();
