@@ -29,11 +29,7 @@ library RecordedLogs {
         Vm.Log[] memory logs = new Vm.Log[](count + newLogs.length);
         for (uint256 i = 0; i < count; i++) {
             bytes memory data = vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "data")));
-            if (data.length > 32) {
-                // We need to need to check it is an actual bytes field.
-                // As we know that all bridge relay messages accomplish this condition, we are fine ignoring which are shorter.
-                logs[i].data = abi.decode(data, (bytes));
-            }
+            logs[i].data = data.length > 32 ? abi.decode(data, (bytes)) : data;
             logs[i].topics  = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "topics"))), (bytes32[]));
             logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "emitter"))), (address));
         }
