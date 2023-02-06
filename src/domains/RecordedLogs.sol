@@ -22,7 +22,7 @@ library RecordedLogs {
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     function getLogs() internal returns (Vm.Log[] memory) {
-        string memory _logs = vm.serializeUint("LOG", "a", 0); // this is the only way to get the logs from the memory object
+        string memory _logs = vm.serializeUint("RECORDED_LOGS", "a", 0); // this is the only way to get the logs from the memory object
         uint256 count = ScriptTools.eq(_logs, '{"a":0}') ? 0 : abi.decode(vm.parseJson(_logs, "count"), (uint256));
 
         Vm.Log[] memory newLogs = vm.getRecordedLogs();
@@ -44,12 +44,12 @@ library RecordedLogs {
         }
 
         for (uint256 i = 0; i < newLogs.length; i++) {
-            vm.serializeBytes("LOG", string(abi.encodePacked(vm.toString(count), "_", "data")), logs[count].data = newLogs[i].data);
-            vm.serializeBytes32("LOG", string(abi.encodePacked(vm.toString(count), "_", "topics")), logs[count].topics = newLogs[i].topics);
-            vm.serializeAddress("LOG", string(abi.encodePacked(vm.toString(count), "_", "emitter")), logs[count].emitter = newLogs[i].emitter);
+            vm.serializeBytes("RECORDED_LOGS", string(abi.encodePacked(vm.toString(count), "_", "data")), logs[count].data = newLogs[i].data);
+            vm.serializeBytes32("RECORDED_LOGS", string(abi.encodePacked(vm.toString(count), "_", "topics")), logs[count].topics = newLogs[i].topics);
+            vm.serializeAddress("RECORDED_LOGS", string(abi.encodePacked(vm.toString(count), "_", "emitter")), logs[count].emitter = newLogs[i].emitter);
             count++;
         }
-        vm.serializeUint("LOG", "count", count);
+        vm.serializeUint("RECORDED_LOGS", "count", count);
 
         return logs;
     }
