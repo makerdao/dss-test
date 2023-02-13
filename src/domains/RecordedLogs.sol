@@ -23,15 +23,15 @@ library RecordedLogs {
 
     function getLogs() internal returns (Vm.Log[] memory) {
         string memory _logs = vm.serializeUint("RECORDED_LOGS", "a", 0); // this is the only way to get the logs from the memory object
-        uint256 count = ScriptTools.eq(_logs, '{"a":0}') ? 0 : abi.decode(vm.parseJson(_logs, "count"), (uint256));
+        uint256 count = ScriptTools.eq(_logs, '{"a":0}') ? 0 : abi.decode(vm.parseJson(_logs, ".count"), (uint256));
 
         Vm.Log[] memory newLogs = vm.getRecordedLogs();
         Vm.Log[] memory logs = new Vm.Log[](count + newLogs.length);
         for (uint256 i = 0; i < count; i++) {
-            bytes memory data = vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "data")));
+            bytes memory data = vm.parseJson(_logs, string(abi.encodePacked(".", vm.toString(i), "_", "data")));
             logs[i].data = data.length > 32 ? abi.decode(data, (bytes)) : data;
-            logs[i].topics  = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "topics"))), (bytes32[]));
-            logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(vm.toString(i), "_", "emitter"))), (address));
+            logs[i].topics  = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(".", vm.toString(i), "_", "topics"))), (bytes32[]));
+            logs[i].emitter = abi.decode(vm.parseJson(_logs, string(abi.encodePacked(".", vm.toString(i), "_", "emitter"))), (address));
         }
 
         for (uint256 i = 0; i < newLogs.length; i++) {
