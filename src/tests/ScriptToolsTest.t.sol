@@ -57,8 +57,8 @@ contract ScriptToolTest is DssTest {
 
         // Simulate a subsequent run loading a previously written file (use latest deploy)
         loadedExports = ScriptTools.readOutput("myExports", 1);
-        assertEq(stdJson.readAddress(loadedExports, "label1"), address(1));
-        assertEq(stdJson.readAddress(loadedExports, "label2"), address(2));
+        assertEq(stdJson.readAddress(loadedExports, ".label1"), address(1));
+        assertEq(stdJson.readAddress(loadedExports, ".label2"), address(2));
     }
 
 }
