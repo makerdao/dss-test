@@ -26,10 +26,10 @@ contract SomeContract {
 contract ModifierUnitTest is DssTest {
 
     function test_modifier() public {
-        checkModifier(address(new SomeContract()), "SomeContract/bad-state", [abi.encodeWithSelector(SomeContract.withModifier.selector)]);
+        checkModifier(address(new SomeContract()), "SomeContract/bad-state", [SomeContract.withModifier.selector]);
     }
     function testFail_modifier_not_present() public {
-        checkModifier(address(new SomeContract()), "SomeContract/bad-state", [abi.encodeWithSelector(SomeContract.withoutModifier.selector)]);
+        checkModifier(address(new SomeContract()), "SomeContract/bad-state", [SomeContract.withoutModifier.selector]);
     }
 
 }
