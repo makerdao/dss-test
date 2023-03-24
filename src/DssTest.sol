@@ -323,42 +323,42 @@ abstract contract DssTest is Test {
         checkFileAddress(_base, _contractName, values);
     }
 
-    function checkModifier(address _base, string memory _revertMsg, bytes[] memory _fsigs) internal {
+    function checkModifier(address _base, string memory _revertMsg, bytes4[] memory _fsigs) internal {
         for (uint256 i = 0; i < _fsigs.length; i++) {
-            bytes memory fsig = _fsigs[i];
+            bytes4 fsig = _fsigs[i];
             uint256 p = 0;
             // Pad the abi call with 0s to fill all the args (it's okay to supply more than the function requires)
             assertRevert(_base, abi.encodePacked(fsig, p, p, p, p, p, p), _revertMsg);
         }
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[1] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](1);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[1] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](1);
         fsigs[0] = _fsigs[0];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[2] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](2);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[2] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](2);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[3] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](3);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[3] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](3);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[4] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](4);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[4] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](4);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
         fsigs[3] = _fsigs[3];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[5] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](5);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[5] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](5);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
@@ -366,8 +366,8 @@ abstract contract DssTest is Test {
         fsigs[4] = _fsigs[4];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[6] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](6);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[6] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](6);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
@@ -376,8 +376,8 @@ abstract contract DssTest is Test {
         fsigs[5] = _fsigs[5];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[7] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](7);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[7] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](7);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
@@ -387,8 +387,8 @@ abstract contract DssTest is Test {
         fsigs[6] = _fsigs[6];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[8] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](8);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[8] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](8);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
@@ -399,8 +399,8 @@ abstract contract DssTest is Test {
         fsigs[7] = _fsigs[7];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[9] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](9);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[9] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](9);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
@@ -412,8 +412,8 @@ abstract contract DssTest is Test {
         fsigs[8] = _fsigs[8];
         checkModifier(_base, _revertMsg, fsigs);
     }
-    function checkModifier(address _base, string memory _revertMsg, bytes[10] memory _fsigs) internal {
-        bytes[] memory fsigs = new bytes[](10);
+    function checkModifier(address _base, string memory _revertMsg, bytes4[10] memory _fsigs) internal {
+        bytes4[] memory fsigs = new bytes4[](10);
         fsigs[0] = _fsigs[0];
         fsigs[1] = _fsigs[1];
         fsigs[2] = _fsigs[2];
