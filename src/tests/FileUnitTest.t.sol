@@ -21,10 +21,12 @@ contract ValidFileContract {
     mapping (address => uint256) public wards;
     uint256 public someData;
     address public vow;
+    string public someStr;
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
+    event File(bytes32 indexed what, string data);
     constructor() { wards[msg.sender] = 1; emit Rely(msg.sender); }
     modifier auth { require(wards[msg.sender] == 1, "FileContract/not-authorized"); _; }
     function rely(address usr) external auth { wards[usr] = 1; emit Rely(usr); }
@@ -40,6 +42,14 @@ contract ValidFileContract {
     function file(bytes32 what, address data) external auth {
         if (what == "vow") {
             vow = data;
+        } else {
+            revert("FileContract/file-unrecognized-param");
+        }
+        emit File(what, data);
+    }
+    function file(bytes32 what, string calldata data) external auth {
+        if (what == "someStr") {
+            someStr = data;
         } else {
             revert("FileContract/file-unrecognized-param");
         }
@@ -50,10 +60,12 @@ contract InvalidFileContractRevertName {
     mapping (address => uint256) public wards;
     uint256 public someData;
     address public vow;
+    string public someStr;
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
+    event File(bytes32 indexed what, string data);
     constructor() { wards[msg.sender] = 1; emit Rely(msg.sender); }
     modifier auth { require(wards[msg.sender] == 1, "FileContract/not-authorized"); _; }
     function rely(address usr) external auth { wards[usr] = 1; emit Rely(usr); }
@@ -74,15 +86,25 @@ contract InvalidFileContractRevertName {
         }
         emit File(what, data);
     }
+    function file(bytes32 what, string calldata data) external auth {
+        if (what == "someStr") {
+            someStr = data;
+        } else {
+            revert("BadName/file-unrecognized-param");
+        }
+        emit File(what, data);
+    }
 }
 contract InvalidFileContractMissingUpdate {
     mapping (address => uint256) public wards;
     uint256 public someData;
     address public vow;
+    string public someStr;
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
+    event File(bytes32 indexed what, string data);
     constructor() { wards[msg.sender] = 1; emit Rely(msg.sender); }
     modifier auth { require(wards[msg.sender] == 1, "FileContract/not-authorized"); _; }
     function rely(address usr) external auth { wards[usr] = 1; emit Rely(usr); }
@@ -101,15 +123,24 @@ contract InvalidFileContractMissingUpdate {
         }
         emit File(what, data);
     }
+    function file(bytes32 what, string calldata data) external auth {
+        if (what == "someStr") {
+        } else {
+            revert("FileContract/file-unrecognized-param");
+        }
+        emit File(what, data);
+    }
 }
 contract InvalidFileContractMissingAuth {
     mapping (address => uint256) public wards;
     uint256 public someData;
     address public vow;
+    string public someStr;
     event Rely(address indexed usr);
     event Deny(address indexed usr);
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
+    event File(bytes32 indexed what, string data);
     constructor() { wards[msg.sender] = 1; emit Rely(msg.sender); }
     modifier auth { require(wards[msg.sender] == 1, "FileContract/not-authorized"); _; }
     function rely(address usr) external auth { wards[usr] = 1; emit Rely(usr); }
@@ -125,6 +156,14 @@ contract InvalidFileContractMissingAuth {
     function file(bytes32 what, address data) external {
         if (what == "vow") {
             vow = data;
+        } else {
+            revert("FileContract/file-unrecognized-param");
+        }
+        emit File(what, data);
+    }
+    function file(bytes32 what, string calldata data) external {
+        if (what == "someStr") {
+            someStr = data;
         } else {
             revert("FileContract/file-unrecognized-param");
         }
@@ -159,5 +198,16 @@ contract FileUnitTest is DssTest {
     function testFail_file_address_missing_auth() public {
         checkFileAddress(address(new InvalidFileContractMissingAuth()), "FileContract", ["vow"]);
     }
-
+    function test_file_string_valid() public {
+        checkFileString(address(new ValidFileContract()), "FileContract", ["someStr"]);
+    }
+    function testFail_file_string_revert_name() public {
+        checkFileString(address(new InvalidFileContractRevertName()), "FileContract", ["someStr"]);
+    }
+    function testFail_file_string_missing_update() public {
+        checkFileString(address(new InvalidFileContractMissingUpdate()), "FileContract", ["someStr"]);
+    }
+    function testFail_file_string_missing_auth() public {
+        checkFileString(address(new InvalidFileContractMissingAuth()), "FileContract", ["someStr"]);
+    }
 }

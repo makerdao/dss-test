@@ -35,6 +35,7 @@ interface AuthLike {
 interface FileLike is AuthLike {
     function file(bytes32, uint256) external;
     function file(bytes32, address) external;
+    function file(bytes32, string memory) external;
 }
 
 abstract contract DssTest is Test {
@@ -54,6 +55,7 @@ abstract contract DssTest is Test {
     event Deny(address indexed usr);
     event File(bytes32 indexed what, uint256 data);
     event File(bytes32 indexed what, address data);
+    event File(bytes32 indexed what, string data);
 
     /**
      * @notice Takes the root chain into account when finding relative chains.
@@ -321,6 +323,106 @@ abstract contract DssTest is Test {
         values[4] = _values[4];
         values[5] = _values[5];
         checkFileAddress(_base, _contractName, values);
+    }
+
+    /// @dev This is forge-only due to event checking
+    function checkFileString(address _base, string memory _contractName, string[] memory _values) internal {
+        FileLike base = FileLike(_base);
+        uint256 ward = base.wards(address(this));
+
+        // Ensure we have admin access
+        GodMode.setWard(_base, address(this), 1);
+
+        // First check an invalid value
+        vm.expectRevert(abi.encodePacked(_contractName, "/file-unrecognized-param"));
+        base.file("an invalid value", "");
+
+        // Next check each value is valid and updates the target storage slot
+        for (uint256 i = 0; i < _values.length; i++) {
+            string memory value = _values[i];
+            bytes32 valueB32;
+            assembly {
+                valueB32 := mload(add(value, 32))
+            }
+
+            // Read original value
+            (bool success, bytes memory result) = _base.call(
+                abi.encodeWithSignature(string(abi.encodePacked(value, "()")))
+            );
+            assertTrue(success);
+            string memory origData = abi.decode(result, (string));
+            string memory newData;
+            newData = string.concat(newData, " - NEW");
+
+            // Update value
+            vm.expectEmit(true, false, false, true);
+            emit File(valueB32, newData);
+            base.file(valueB32, newData);
+
+            // Confirm it was updated successfully
+            (success, result) = _base.call(abi.encodeWithSignature(string(abi.encodePacked(value, "()"))));
+            assertTrue(success);
+            string memory data = abi.decode(result, (string));
+            assertEq(data, newData);
+
+            // Reset value to original
+            vm.expectEmit(true, false, false, true);
+            emit File(valueB32, origData);
+            base.file(valueB32, origData);
+        }
+
+        // Finally check that file is authed
+        base.deny(address(this));
+        vm.expectRevert(abi.encodePacked(_contractName, "/not-authorized"));
+        base.file("some value", "");
+
+        // Reset admin access to what it was
+        GodMode.setWard(_base, address(this), ward);
+    }
+    function checkFileString(address _base, string memory _contractName, string[1] memory _values) internal {
+        string[] memory values = new string[](1);
+        values[0] = _values[0];
+        checkFileString(_base, _contractName, values);
+    }
+    function checkFileString(address _base, string memory _contractName, string[2] memory _values) internal {
+        string[] memory values = new string[](2);
+        values[0] = _values[0];
+        values[1] = _values[1];
+        checkFileString(_base, _contractName, values);
+    }
+    function checkFileString(address _base, string memory _contractName, string[3] memory _values) internal {
+        string[] memory values = new string[](3);
+        values[0] = _values[0];
+        values[1] = _values[1];
+        values[2] = _values[2];
+        checkFileString(_base, _contractName, values);
+    }
+    function checkFileString(address _base, string memory _contractName, string[4] memory _values) internal {
+        string[] memory values = new string[](4);
+        values[0] = _values[0];
+        values[1] = _values[1];
+        values[2] = _values[2];
+        values[3] = _values[3];
+        checkFileString(_base, _contractName, values);
+    }
+    function checkFileString(address _base, string memory _contractName, string[5] memory _values) internal {
+        string[] memory values = new string[](5);
+        values[0] = _values[0];
+        values[1] = _values[1];
+        values[2] = _values[2];
+        values[3] = _values[3];
+        values[4] = _values[4];
+        checkFileString(_base, _contractName, values);
+    }
+    function checkFileString(address _base, string memory _contractName, string[6] memory _values) internal {
+        string[] memory values = new string[](6);
+        values[0] = _values[0];
+        values[1] = _values[1];
+        values[2] = _values[2];
+        values[3] = _values[3];
+        values[4] = _values[4];
+        values[5] = _values[5];
+        checkFileString(_base, _contractName, values);
     }
 
     function checkModifier(address _base, string memory _revertMsg, bytes4[] memory _fsigs) internal {
