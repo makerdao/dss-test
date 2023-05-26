@@ -198,6 +198,7 @@ contract FileUnitTest is DssTest {
     function testFail_file_address_missing_auth() public {
         checkFileAddress(address(new InvalidFileContractMissingAuth()), "FileContract", ["vow"]);
     }
+
     function test_file_string_valid() public {
         checkFileString(address(new ValidFileContract()), "FileContract", ["someStr"]);
     }
