@@ -349,7 +349,7 @@ abstract contract DssTest is Test {
             (bool success, bytes memory result) = _base.call(abi.encodeWithSignature(string(abi.encodePacked(value, "()"))));
             assertTrue(success);
             string memory origData = abi.decode(result, (string));
-            string memory newData = string.concat(origData, " - NEW");
+            string memory newData = string(abi.encodePacked(origData, " - NEW"));
 
             // Update value
             vm.expectEmit(true, false, false, true);
