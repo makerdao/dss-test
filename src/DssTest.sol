@@ -425,9 +425,9 @@ abstract contract DssTest is Test {
     function checkModifier(address _base, string memory _revertMsg, bytes4[] memory _fsigs) internal {
         for (uint256 i = 0; i < _fsigs.length; i++) {
             bytes4 fsig = _fsigs[i];
-            uint256 p = 0;
+            uint256[] memory p = new uint256[](20);
             // Pad the abi call with 0s to fill all the args (it's okay to supply more than the function requires)
-            assertRevert(_base, abi.encodePacked(fsig, p, p, p, p, p, p), _revertMsg);
+            assertRevert(_base, abi.encodePacked(fsig, p), _revertMsg);
         }
     }
     function checkModifier(address _base, string memory _revertMsg, bytes4[1] memory _fsigs) internal {
