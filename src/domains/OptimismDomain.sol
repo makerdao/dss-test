@@ -28,15 +28,6 @@ interface MessengerLike {
         uint32 gasLimit
     ) external;
     function relayMessage(
-        address _target,
-        address _sender,
-        bytes memory _message,
-        uint256 _messageNonce
-    ) external;
-}
-
-interface BedrockMessengerLike {
-    function relayMessage(
         uint256 _nonce,
         address _sender,
         address _target,
@@ -81,14 +72,8 @@ contract OptimismDomain is BridgedDomain {
             if (log.topics[0] == SENT_MESSAGE_TOPIC && log.emitter == address(l1Messenger)) {
                 address target = address(uint160(uint256(log.topics[1])));
                 (address sender, bytes memory message, uint256 nonce, uint256 gasLimit) = abi.decode(log.data, (address, bytes, uint256, uint256));
-                vm.startPrank(malias);
-                if (isGoerli()) {
-                    // Goerli has been upgraded to bedrock which has a new relay interface
-                    BedrockMessengerLike(address(l2Messenger)).relayMessage(nonce, sender, target, 0, gasLimit, message);
-                } else {
-                    l2Messenger.relayMessage(target, sender, message, nonce);
-                }
-                vm.stopPrank();
+                vm.prank(malias);
+                l2Messenger.relayMessage(nonce, sender, target, 0, gasLimit, message);
             }
         }
 
