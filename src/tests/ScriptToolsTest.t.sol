@@ -61,4 +61,15 @@ contract ScriptToolTest is DssTest {
         assertEq(stdJson.readAddress(loadedExports, ".label2"), address(2));
     }
 
+    function test_export_values() public {
+        // Export some values and write to output
+        ScriptTools.exportValue("myExports", "label1", 1);
+        ScriptTools.exportValue("myExports", "label2", 2);
+
+        // Simulate a subsequent run loading a previously written file (use latest deploy)
+        loadedExports = ScriptTools.readOutput("myExports", 1);
+        assertEq(stdJson.readUint(loadedExports, ".label1"), 1);
+        assertEq(stdJson.readUint(loadedExports, ".label2"), 2);
+    }
+
 }
