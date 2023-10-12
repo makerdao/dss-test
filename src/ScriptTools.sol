@@ -20,14 +20,14 @@ import { stdJson } from "forge-std/StdJson.sol";
 
 import { WardsAbstract } from "dss-interfaces/Interfaces.sol";
 
-/** 
+/**
  * @title Script Tools
  * @dev Contains opinionated tools used in scripts.
  */
 library ScriptTools {
 
     VmSafe private constant vm = VmSafe(address(uint160(uint256(keccak256("hevm cheat code")))));
-    
+
     string internal constant DEFAULT_DELIMITER = ",";
     string internal constant DELIMITER_OVERRIDE = "DSSTEST_ARRAY_DELIMITER";
     string internal constant EXPORT_JSON_KEY = "EXPORTS";
@@ -57,7 +57,7 @@ library ScriptTools {
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
         return vm.readFile(string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
     }
-    
+
     /**
      * @notice Use standard environment variables to load config.
      * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
@@ -72,7 +72,7 @@ library ScriptTools {
             config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name));
         }
     }
-    
+
     /**
      * @notice Use standard environment variables to load config.
      * @dev Will first check FOUNDRY_SCRIPT_CONFIG_TEXT for raw json text.
@@ -86,7 +86,7 @@ library ScriptTools {
             config = readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG"));
         }
     }
-    
+
     /**
      * @notice Use standard environment variables to load dependencies.
      * @dev Will first check FOUNDRY_SCRIPT_DEPS_TEXT for raw json text.
@@ -101,7 +101,7 @@ library ScriptTools {
             dependencies = readOutput(vm.envOr("FOUNDRY_SCRIPT_DEPS", name));
         }
     }
-    
+
     /**
      * @notice Use standard environment variables to load dependencies.
      * @dev Will first check FOUNDRY_SCRIPT_DEPS_TEXT for raw json text.
@@ -119,6 +119,17 @@ library ScriptTools {
     /**
      * @notice Used to export important contracts to higher level deploy scripts.
      *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Requires FOUNDRY_EXPORTS_NAME to be set.
+     * @param label The label of the address.
+     * @param addr The address to export.
+     */
+    function exportContract(string memory label, address addr) internal {
+        exportContract(vm.envString("FOUNDRY_EXPORTS_NAME"), label, addr);
+    }
+
+    /**
+     * @notice Used to export important contracts to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
      * @dev Set FOUNDRY_EXPORTS_NAME to override the name of the json file.
      * @param name The name to give the json file.
      * @param label The label of the address.
@@ -127,23 +138,46 @@ library ScriptTools {
     function exportContract(string memory name, string memory label, address addr) internal {
         name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
         string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
+        _doExport(name, json);
+    }
+
+    /**
+     * @notice Used to export important values to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Requires FOUNDRY_EXPORTS_NAME to be set.
+     * @param label The label of the address.
+     * @param val The value to export.
+     */
+    function exportValue(string memory label, uint256 val) internal {
+        exportValue(vm.envString("FOUNDRY_EXPORTS_NAME"), label, val);
+    }
+
+    /**
+     * @notice Used to export important values to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Set FOUNDRY_EXPORTS_NAME to override the name of the json file.
+     * @param name The name to give the json file.
+     * @param label The label of the address.
+     * @param val The value to export.
+     */
+    function exportValue(string memory name, string memory label, uint256 val) internal {
+        name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
+        string memory json = vm.serializeUint(EXPORT_JSON_KEY, label, val);
+        _doExport(name, json);
+    }
+
+    /**
+     * @dev Common logic to export JSON files.
+     * @param name The name to give the json file
+     * @param json The serialized json object to export.
+     */
+    function _doExport(string memory name, string memory json) internal {
         string memory root = vm.projectRoot();
         string memory chainOutputFolder = string(abi.encodePacked("/script/output/", vm.toString(getRootChainId()), "/"));
         vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-", vm.toString(block.timestamp), ".json")));
         if (vm.envOr("FOUNDRY_EXPORTS_OVERWRITE_LATEST", false)) {
             vm.writeJson(json, string(abi.encodePacked(root, chainOutputFolder, name, "-latest.json")));
         }
-    }
-
-    /**
-     * @notice Used to export important contracts to higher level deploy scripts.
-     *         Note waiting on Foundry to have better primitives, but roll our own for now.
-     * @dev Requires FOUNDRY_EXPORTS_NAME to be set.
-     * @param label The label of the address.
-     * @param addr The address to export.
-     */
-    function exportContract(string memory label, address addr) internal {
-        exportContract(vm.envString("FOUNDRY_EXPORTS_NAME"), label, addr);
     }
 
     /**
