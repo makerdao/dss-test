@@ -167,6 +167,31 @@ library ScriptTools {
     }
 
     /**
+     * @notice Used to export important values to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Requires FOUNDRY_EXPORTS_NAME to be set.
+     * @param label The label of the address.
+     * @param val The value to export.
+     */
+    function exportValue(string memory label, string memory val) internal {
+        exportValue(vm.envString("FOUNDRY_EXPORTS_NAME"), label, val);
+    }
+
+    /**
+     * @notice Used to export important values to higher level deploy scripts.
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Set FOUNDRY_EXPORTS_NAME to override the name of the json file.
+     * @param name The name to give the json file.
+     * @param label The label of the address.
+     * @param val The value to export.
+     */
+    function exportValue(string memory name, string memory label, string memory val) internal {
+        name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
+        string memory json = vm.serializeString(EXPORT_JSON_KEY, label, val);
+        _doExport(name, json);
+    }
+
+    /**
      * @dev Common logic to export JSON files.
      * @param name The name to give the json file
      * @param json The serialized json object to export.
