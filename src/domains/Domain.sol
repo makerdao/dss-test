@@ -39,23 +39,23 @@ contract Domain {
         vm.makePersistent(address(this));
     }
 
-    function readConfigString(string memory key) public returns (string memory) {
+    function readConfigString(string memory key) public view returns (string memory) {
         return config.readString(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
-    function readConfigAddress(string memory key) public returns (address) {
+    function readConfigAddress(string memory key) public view returns (address) {
         return config.readAddress(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
-    function readConfigUint(string memory key) public returns (uint256) {
+    function readConfigUint(string memory key) public view returns (uint256) {
         return config.readUint(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
-    function readConfigInt(string memory key) public returns (int256) {
+    function readConfigInt(string memory key) public view returns (int256) {
         return config.readInt(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
-    function readConfigBytes32(string memory key) public returns (bytes32) {
+    function readConfigBytes32(string memory key) public view returns (bytes32) {
         return config.readBytes32(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
@@ -67,7 +67,7 @@ contract Domain {
         return out;
     }
 
-    function readConfigBytes32FromString(string memory key) public returns (bytes32) {
+    function readConfigBytes32FromString(string memory key) public view returns (bytes32) {
         return bytesToBytes32(bytes(readConfigString(key)));
     }
 
@@ -82,12 +82,12 @@ contract Domain {
     function details() public view returns (StdChains.Chain memory) {
         return _details;
     }
-    
+
     function selectFork() public {
         vm.selectFork(forkId);
         require(block.chainid == _details.chainId, string(abi.encodePacked(_details.chainAlias, " is pointing to the wrong RPC endpoint '", _details.rpcUrl, "'")));
     }
-    
+
     function rollFork(uint256 blocknum) public {
         vm.rollFork(forkId, blocknum);
     }
