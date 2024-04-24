@@ -22,46 +22,44 @@ contract ScriptToolTest is DssTest {
 
     string loadedExports;
 
-    function test_stringToBytes32() public {
+    function test_stringToBytes32() public pure {
         assertEq(ScriptTools.stringToBytes32("test"),  bytes32("test"));
     }
 
-    function test_stringToBytes32_empty() public {
+    function test_stringToBytes32_empty() public pure {
         assertEq(ScriptTools.stringToBytes32(""),  bytes32(""));
     }
 
-    function test_ilkToChainlogFormat() public {
+    function test_ilkToChainlogFormat() public pure {
         assertEq(ScriptTools.ilkToChainlogFormat(bytes32("ETH-A")), "ETH_A");
     }
 
-    function test_ilkToChainlogFormat_empty() public {
+    function test_ilkToChainlogFormat_empty() public pure {
         assertEq(ScriptTools.ilkToChainlogFormat(bytes32("")), "");
     }
 
-    function test_ilkToChainlogFormat_multiple() public {
+    function test_ilkToChainlogFormat_multiple() public pure {
         assertEq(ScriptTools.ilkToChainlogFormat(bytes32("DIRECT-AAVEV2-DAI")), "DIRECT_AAVEV2_DAI");
     }
 
-    function test_eq() public {
+    function test_eq() public pure {
         assertTrue(ScriptTools.eq("A", "A"));
     }
 
-    function test_not_eq() public {
+    function test_not_eq() public pure {
         assertTrue(!ScriptTools.eq("A", "B"));
     }
 
-    function test_export_contracts() public {
+    function test_export() public {
         // Export some contracts and write to output
-        ScriptTools.exportContract("myExports", "label1", address(1));
-        ScriptTools.exportContract("myExports", "label2", address(2));
+        ScriptTools.exportContract("myExports", "addr1", address(0x1));
+        ScriptTools.exportContract("myExports", "addr2", address(0x2));
 
         // Simulate a subsequent run loading a previously written file (use latest deploy)
         loadedExports = ScriptTools.readOutput("myExports", 1);
-        assertEq(stdJson.readAddress(loadedExports, ".label1"), address(1));
-        assertEq(stdJson.readAddress(loadedExports, ".label2"), address(2));
-    }
+        assertEq(stdJson.readAddress(loadedExports, ".addr1"), address(0x1));
+        assertEq(stdJson.readAddress(loadedExports, ".addr2"), address(0x2));
 
-    function test_export_values() public {
         // Export some values and write to output
         ScriptTools.exportValue("myExports", "label1", 1);
         ScriptTools.exportValue("myExports", "label2", 2);

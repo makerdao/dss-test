@@ -66,7 +66,7 @@ library ScriptTools {
      * @param name The default config file to load if no environment variables are set.
      * @return config The raw json text of the config.
      */
-    function loadConfig(string memory name) internal returns (string memory config) {
+    function loadConfig(string memory name) internal view returns (string memory config) {
         config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
         if (eq(config, "")) {
             config = readInput(vm.envOr("FOUNDRY_SCRIPT_CONFIG", name));
@@ -80,7 +80,7 @@ library ScriptTools {
      *      Finally will revert if no environment variables are set.
      * @return config The raw json text of the config.
      */
-    function loadConfig() internal returns (string memory config) {
+    function loadConfig() internal view returns (string memory config) {
         config = vm.envOr("FOUNDRY_SCRIPT_CONFIG_TEXT", string(""));
         if (eq(config, "")) {
             config = readInput(vm.envString("FOUNDRY_SCRIPT_CONFIG"));
@@ -95,7 +95,7 @@ library ScriptTools {
      * @param name The default dependency file to load if no environment variables are set.
      * @return dependencies The raw json text of the dependencies.
      */
-    function loadDependencies(string memory name) internal returns (string memory dependencies) {
+    function loadDependencies(string memory name) internal view returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
         if (eq(dependencies, "")) {
             dependencies = readOutput(vm.envOr("FOUNDRY_SCRIPT_DEPS", name));
@@ -109,7 +109,7 @@ library ScriptTools {
      *      Finally will revert if no environment variables are set.
      * @return dependencies The raw json text of the dependencies.
      */
-    function loadDependencies() internal returns (string memory dependencies) {
+    function loadDependencies() internal view returns (string memory dependencies) {
         dependencies = vm.envOr("FOUNDRY_SCRIPT_DEPS_TEXT", string(""));
         if (eq(dependencies, "")) {
             dependencies = readOutput(vm.envString("FOUNDRY_SCRIPT_DEPS"));
@@ -250,59 +250,59 @@ library ScriptTools {
 
     // Read config variable, but allow for an environment variable override
 
-    function readUint(string memory json, string memory key, string memory envKey) internal returns (uint256) {
+    function readUint(string memory json, string memory key, string memory envKey) internal view returns (uint256) {
         return vm.envOr(envKey, stdJson.readUint(json, key));
     }
 
-    function readUintArray(string memory json, string memory key, string memory envKey) internal returns (uint256[] memory) {
+    function readUintArray(string memory json, string memory key, string memory envKey) internal view returns (uint256[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readUintArray(json, key));
     }
 
-    function readInt(string memory json, string memory key, string memory envKey) internal returns (int256) {
+    function readInt(string memory json, string memory key, string memory envKey) internal view returns (int256) {
         return vm.envOr(envKey, stdJson.readInt(json, key));
     }
 
-    function readIntArray(string memory json, string memory key, string memory envKey) internal returns (int256[] memory) {
+    function readIntArray(string memory json, string memory key, string memory envKey) internal view returns (int256[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readIntArray(json, key));
     }
 
-    function readBytes32(string memory json, string memory key, string memory envKey) internal returns (bytes32) {
+    function readBytes32(string memory json, string memory key, string memory envKey) internal view returns (bytes32) {
         return vm.envOr(envKey, stdJson.readBytes32(json, key));
     }
 
-    function readBytes32Array(string memory json, string memory key, string memory envKey) internal returns (bytes32[] memory) {
+    function readBytes32Array(string memory json, string memory key, string memory envKey) internal view returns (bytes32[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readBytes32Array(json, key));
     }
 
-    function readString(string memory json, string memory key, string memory envKey) internal returns (string memory) {
+    function readString(string memory json, string memory key, string memory envKey) internal view returns (string memory) {
         return vm.envOr(envKey, stdJson.readString(json, key));
     }
 
-    function readStringArray(string memory json, string memory key, string memory envKey) internal returns (string[] memory) {
+    function readStringArray(string memory json, string memory key, string memory envKey) internal view returns (string[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readStringArray(json, key));
     }
 
-    function readAddress(string memory json, string memory key, string memory envKey) internal returns (address) {
+    function readAddress(string memory json, string memory key, string memory envKey) internal view returns (address) {
         return vm.envOr(envKey, stdJson.readAddress(json, key));
     }
 
-    function readAddressArray(string memory json, string memory key, string memory envKey) internal returns (address[] memory) {
+    function readAddressArray(string memory json, string memory key, string memory envKey) internal view returns (address[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readAddressArray(json, key));
     }
 
-    function readBool(string memory json, string memory key, string memory envKey) internal returns (bool) {
+    function readBool(string memory json, string memory key, string memory envKey) internal view returns (bool) {
         return vm.envOr(envKey, stdJson.readBool(json, key));
     }
 
-    function readBoolArray(string memory json, string memory key, string memory envKey) internal returns (bool[] memory) {
+    function readBoolArray(string memory json, string memory key, string memory envKey) internal view returns (bool[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readBoolArray(json, key));
     }
 
-    function readBytes(string memory json, string memory key, string memory envKey) internal returns (bytes memory) {
+    function readBytes(string memory json, string memory key, string memory envKey) internal view returns (bytes memory) {
         return vm.envOr(envKey, stdJson.readBytes(json, key));
     }
 
-    function readBytesArray(string memory json, string memory key, string memory envKey) internal returns (bytes[] memory) {
+    function readBytesArray(string memory json, string memory key, string memory envKey) internal view returns (bytes[] memory) {
         return vm.envOr(envKey, vm.envOr(DELIMITER_OVERRIDE, DEFAULT_DELIMITER), stdJson.readBytesArray(json, key));
     }
 
