@@ -137,7 +137,7 @@ library ScriptTools {
      */
     function exportContract(string memory name, string memory label, address addr) internal {
         name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
-        string memory json = vm.serializeAddress(EXPORT_JSON_KEY, label, addr);
+        string memory json = vm.serializeAddress(string(abi.encodePacked(EXPORT_JSON_KEY, "_", name)), label, addr);
         _doExport(name, json);
     }
 
@@ -162,7 +162,7 @@ library ScriptTools {
      */
     function exportValue(string memory name, string memory label, uint256 val) internal {
         name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
-        string memory json = vm.serializeUint(EXPORT_JSON_KEY, label, val);
+        string memory json = vm.serializeUint(string(abi.encodePacked(EXPORT_JSON_KEY, "_", name)), label, val);
         _doExport(name, json);
     }
 
@@ -187,7 +187,7 @@ library ScriptTools {
      */
     function exportValue(string memory name, string memory label, string memory val) internal {
         name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
-        string memory json = vm.serializeString(EXPORT_JSON_KEY, label, val);
+        string memory json = vm.serializeString(string(abi.encodePacked(EXPORT_JSON_KEY, "_", name)), label, val);
         _doExport(name, json);
     }
 
