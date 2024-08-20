@@ -19,6 +19,7 @@ import "forge-std/Vm.sol";
 
 import { RecordedLogs } from "./RecordedLogs.sol";
 import { Domain, BridgedDomain } from "./BridgedDomain.sol";
+import { stdStorage, StdStorage } from "forge-std/Test.sol";        
 import { StdChains } from "forge-std/StdChains.sol";
 
 interface MessengerLike {
@@ -37,13 +38,20 @@ interface MessengerLike {
     ) external payable;
 }
 
+interface L1MessengerLike {
+    function portal() external returns (address);
+}
+
 contract OptimismDomain is BridgedDomain {
+    using stdStorage for StdStorage;
 
     MessengerLike public immutable l1Messenger;
     MessengerLike public immutable l2Messenger;
 
     bytes32 constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
     uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);
+
+    StdStorage internal stdstore;
 
     uint256 internal lastFromHostLogIndex;
     uint256 internal lastToHostLogIndex;
@@ -84,40 +92,18 @@ contract OptimismDomain is BridgedDomain {
 
     function relayToHost(bool switchToHost) external override {
         hostDomain.selectFork();
+        address portal = L1MessengerLike(address(l1Messenger)).portal();
 
         // Read all L2 -> L1 messages and relay them under Primary fork
-        // Note: We bypass the L1 messenger relay here because it's easier to not have to generate valid state roots / merkle proofs
         Vm.Log[] memory logs = RecordedLogs.getLogs();
         for (; lastToHostLogIndex < logs.length; lastToHostLogIndex++) {
             Vm.Log memory log = logs[lastToHostLogIndex];
             if (log.topics[0] == SENT_MESSAGE_TOPIC && log.emitter == address(l2Messenger)) {
                 address target = address(uint160(uint256(log.topics[1])));
-                (address sender, bytes memory message,,) = abi.decode(log.data, (address, bytes, uint256, uint256));
-                // Set xDomainMessageSender
-                vm.store(
-                    address(l1Messenger),
-                    bytes32(uint256(204)),
-                    bytes32(uint256(uint160(sender)))
-                );
-                vm.startPrank(address(l1Messenger));
-                (bool success, bytes memory response) = target.call(message);
-                vm.stopPrank();
-                vm.store(
-                    address(l1Messenger),
-                    bytes32(uint256(204)),
-                    bytes32(uint256(0))
-                );
-                if (!success) {
-                    string memory rmessage;
-                    assembly {
-                        let size := mload(add(response, 0x44))
-                        rmessage := mload(0x40)
-                        mstore(rmessage, size)
-                        mstore(0x40, add(rmessage, and(add(add(size, 0x20), 0x1f), not(0x1f))))
-                        returndatacopy(add(rmessage, 0x20), 0x44, size)
-                    }
-                    revert(rmessage);
-                }
+                (address sender, bytes memory message, uint256 nonce, uint256 gasLimit) = abi.decode(log.data, (address, bytes, uint256, uint256));
+                stdstore.target(portal).sig("l2Sender()").checked_write(address(l2Messenger));
+                vm.prank(portal);
+                l1Messenger.relayMessage(nonce, sender, target, 0, gasLimit, message);
             }
         }
 
