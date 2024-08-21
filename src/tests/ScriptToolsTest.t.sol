@@ -54,11 +54,16 @@ contract ScriptToolTest is DssTest {
         // Export some contracts and write to output
         ScriptTools.exportContract("myExports", "addr1", address(0x1));
         ScriptTools.exportContract("myExports", "addr2", address(0x2));
+        address[] memory addr34 = new address[](2);
+        addr34[0] = address(0x3);
+        addr34[1] = address(0x4);
+        ScriptTools.exportContracts("myExports", "addr34", addr34);
 
         // Simulate a subsequent run loading a previously written file (use latest deploy)
         loadedExports = ScriptTools.readOutput("myExports", 1);
         assertEq(stdJson.readAddress(loadedExports, ".addr1"), address(0x1));
         assertEq(stdJson.readAddress(loadedExports, ".addr2"), address(0x2));
+        assertEq(stdJson.readAddressArray(loadedExports, ".addr34"), addr34);
 
         // Export some values and write to output
         ScriptTools.exportValue("myExports", "label1", 1);
