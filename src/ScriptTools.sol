@@ -147,7 +147,7 @@ library ScriptTools {
      *         Note waiting on Foundry to have better primitives, but roll our own for now.
      * @dev Set FOUNDRY_EXPORTS_NAME to override the name of the json file.
      * @param name The name to give the json file.
-     * @param label The label of the address.
+     * @param label The label of the addresses.
      * @param addr The addresses to export.
      */
     function exportContracts(string memory name, string memory label, address[] memory addr) internal {
