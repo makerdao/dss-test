@@ -142,6 +142,21 @@ library ScriptTools {
     }
 
     /**
+     * @notice Used to export important contracts to higher level deploy scripts. Specifically,
+     *         this function exports an array of contracts under the same key (label).
+     *         Note waiting on Foundry to have better primitives, but roll our own for now.
+     * @dev Set FOUNDRY_EXPORTS_NAME to override the name of the json file.
+     * @param name The name to give the json file.
+     * @param label The label of the addresses.
+     * @param addr The addresses to export.
+     */
+    function exportContracts(string memory name, string memory label, address[] memory addr) internal {
+        name = vm.envOr("FOUNDRY_EXPORTS_NAME", name);
+        string memory json = vm.serializeAddress(string(abi.encodePacked(EXPORT_JSON_KEY, "_", name)), label, addr);
+        _doExport(name, json);
+    }
+
+    /**
      * @notice Used to export important values to higher level deploy scripts.
      *         Note waiting on Foundry to have better primitives, but roll our own for now.
      * @dev Requires FOUNDRY_EXPORTS_NAME to be set.
