@@ -39,7 +39,7 @@ contract Domain {
         vm.makePersistent(address(this));
     }
 
-    function hasConfigKey(string memory key) internal view returns (bool) {
+    function hasConfigKey(string memory key) public view returns (bool) {
         bytes memory raw = config.parseRaw(string.concat(".domains.", _details.chainAlias, ".", key));
         return raw.length > 0;
     }
@@ -52,7 +52,7 @@ contract Domain {
         return config.readAddress(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
-    function readConfigAddresses(string memory key) internal view returns (address[] memory) {
+    function readConfigAddresses(string memory key) public view returns (address[] memory) {
         return config.readAddressArray(string.concat(".domains.", _details.chainAlias, ".", key));
     }
 
