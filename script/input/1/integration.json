@@ -10,6 +10,10 @@
         "arbitrum_one": {
             "inbox": "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
             "arbSys": "0x0000000000000000000000000000000000000064"
+        },
+	"base": {
+            "l1Messenger": "0x866E82a600A1414e583f7F13623F1aC5d58b0Afa",
+            "l2Messenger": "0x4200000000000000000000000000000000000007"
         }
     }
 }
